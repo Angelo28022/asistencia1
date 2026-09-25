@@ -14,10 +14,9 @@ var ReporteJornadas = (function () {
   // Configuration
   // ---------------------------------------------------------------------
 
-  // Institution name shown in the letterhead. Replace with the real
-  // institution name; kept as a placeholder because it is unknown at the
-  // time this report was built.
-  var INSTITUCION_NOMBRE = '[NOMBRE DE LA INSTITUCIÓN]';
+  // Institution name shown in the letterhead. Kept as a single constant so
+  // it is easy to change later without touching the layout code.
+  var INSTITUCION_NOMBRE = 'Liceo Santa Rosa de Lima';
 
   // Whether the institutional crest image is shown in the letterhead.
   // A previous version of this report removed the logo at a user's request;
@@ -140,6 +139,20 @@ var ReporteJornadas = (function () {
       minutosRestantes = 0;
     }
     return horas + ' h ' + pad2(minutosRestantes) + ' min';
+  }
+
+  // Parses an <input type="date"> value ("yyyy-mm-dd") as a LOCAL Date at
+  // midnight, without going through `new Date(str)` (which parses it as UTC
+  // midnight and can land on the previous day in a negative UTC offset zone).
+  function parseFechaISO(valorISO) {
+    if (!valorISO) return null;
+    var partes = String(valorISO).trim().split('-');
+    if (partes.length !== 3) return null;
+    var anio = parseInt(partes[0], 10);
+    var mes = parseInt(partes[1], 10);
+    var dia = parseInt(partes[2], 10);
+    if (isNaN(anio) || isNaN(mes) || isNaN(dia)) return null;
+    return new Date(anio, mes - 1, dia);
   }
 
   // Formats an emission date coming from <input type="date"> ("yyyy-mm-dd")
@@ -441,7 +454,7 @@ var ReporteJornadas = (function () {
 
     return {
       table: {
-        widths: ['*', '*', '*', '*'],
+        widths: [185, 90, 90, '*'],
         body: [
           [
             metaColumna('Periodo', periodoTexto),
@@ -588,7 +601,7 @@ var ReporteJornadas = (function () {
         {
           columns: [
             {
-              width: '*',
+              width: 300,
               stack: [
                 {
                   text: 'RESPONSABLE DEL REPORTE',
@@ -618,10 +631,13 @@ var ReporteJornadas = (function () {
               ]
             },
             {
-              width: '*',
+              width: 181,
               stack: [
                 { text: ' ', margin: [0, 30, 0, 0] },
-                { canvas: [{ type: 'line', x1: 60, y1: 0, x2: 455, y2: 0, lineWidth: 1, lineColor: COLORES.ink }] },
+                // x2 is kept well inside this column's own width (181pt) --
+                // a canvas' drawn extent counts as its natural width, and a
+                // longer line here would starve this column of layout space.
+                { canvas: [{ type: 'line', x1: 10, y1: 0, x2: 171, y2: 0, lineWidth: 1, lineColor: COLORES.ink }] },
                 { text: responsable.nombre, fontSize: 10.5, bold: true, alignment: 'center', margin: [0, 6, 0, 0] },
                 { text: 'Firma y sello', fontSize: 9, color: COLORES.muted, alignment: 'center' }
               ]
@@ -679,6 +695,66 @@ var ReporteJornadas = (function () {
     return doc;
   }
 
+  // ---------------------------------------------------------------------
+  // Browser resource loading (crest image now, Poppins fonts in a later
+  // task). Only ever called from the browser (asistencia.js); guarded so
+  // requiring this module in Node (tests) never touches fetch/Promise use
+  // beyond defining the functions.
+  // ---------------------------------------------------------------------
+
+  var _recursos = { escudoDataUrl: null, poppinsDisponible: false };
+  var _recursosPromise = null;
+
+  function blobADataUrl(blob) {
+    return new Promise(function (resolve, reject) {
+      var lector = new FileReader();
+      lector.onloadend = function () {
+        resolve(lector.result);
+      };
+      lector.onerror = reject;
+      lector.readAsDataURL(blob);
+    });
+  }
+
+  function cargarImagenBase64(url) {
+    return fetch(url)
+      .then(function (respuesta) {
+        if (!respuesta.ok) throw new Error('HTTP ' + respuesta.status + ' cargando ' + url);
+        return respuesta.blob();
+      })
+      .then(blobADataUrl);
+  }
+
+  // Loads the resources the PDF needs (institutional crest for now) and
+  // caches the result. NEVER rejects: on any failure it resolves with
+  // whatever partial state it has, so PDF generation always falls back
+  // gracefully (no crest / Roboto only) instead of breaking the export.
+  function prepararRecursos(baseUrl) {
+    if (_recursosPromise) return _recursosPromise;
+    var base = baseUrl || '';
+
+    _recursosPromise = Promise.resolve()
+      .then(function () {
+        if (!MOSTRAR_ESCUDO) return null;
+        return cargarImagenBase64(base + 'public/img/escudo-pdf.png').catch(function () {
+          return null;
+        });
+      })
+      .then(function (escudoDataUrl) {
+        _recursos.escudoDataUrl = escudoDataUrl;
+        return _recursos;
+      })
+      .catch(function () {
+        return _recursos;
+      });
+
+    return _recursosPromise;
+  }
+
+  function obtenerRecursos() {
+    return _recursos;
+  }
+
   return {
     INSTITUCION_NOMBRE: INSTITUCION_NOMBRE,
     MOSTRAR_ESCUDO: MOSTRAR_ESCUDO,
@@ -691,6 +767,7 @@ var ReporteJornadas = (function () {
     formatearFecha: formatearFecha,
     formatearHora: formatearHora,
     formatearFechaInputISO: formatearFechaInputISO,
+    parseFechaISO: parseFechaISO,
     formatDuracion: formatDuracion,
     textoDeCelda: textoDeCelda,
 
@@ -699,7 +776,10 @@ var ReporteJornadas = (function () {
     agruparJornadas: agruparJornadas,
     procesarTabla: procesarTabla,
 
-    buildDocDefinition: buildDocDefinition
+    buildDocDefinition: buildDocDefinition,
+
+    prepararRecursos: prepararRecursos,
+    obtenerRecursos: obtenerRecursos
   };
 })();
 

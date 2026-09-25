@@ -233,6 +233,22 @@ test('groups by full name when cédula is missing, and cargo missing does not cr
   assert.equal(resultado.personas[0].jornadas[0].segundos, 8 * 3600);
 });
 
+test('parseFechaISO parses yyyy-mm-dd as a local midnight Date, without a UTC day-shift', () => {
+  const d = ReporteJornadas.parseFechaISO('2025-07-15');
+  assert.equal(d.getFullYear(), 2025);
+  assert.equal(d.getMonth(), 6);
+  assert.equal(d.getDate(), 15);
+  assert.equal(d.getHours(), 0);
+  assert.equal(ReporteJornadas.parseFechaISO(''), null);
+  assert.equal(ReporteJornadas.parseFechaISO(undefined), null);
+});
+
+test('obtenerRecursos starts with no crest and no Poppins until prepararRecursos loads them', () => {
+  const recursos = ReporteJornadas.obtenerRecursos();
+  assert.equal(recursos.escudoDataUrl, null);
+  assert.equal(recursos.poppinsDisponible, false);
+});
+
 test('formatearFechaInputISO formats yyyy-mm-dd without a UTC day-shift', () => {
   // new Date('2026-09-24') is parsed as UTC midnight; in a negative UTC
   // offset zone (e.g. America/Caracas, UTC-4) toLocaleDateString would show
