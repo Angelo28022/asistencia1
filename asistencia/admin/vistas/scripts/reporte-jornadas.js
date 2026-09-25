@@ -425,10 +425,13 @@ var ReporteJornadas = (function () {
     };
   }
 
-  function construirTitulo() {
+  function construirTitulo(opciones) {
+    var estiloTitulo = { text: 'Reporte de Asistencia', fontSize: 20, bold: true, color: COLORES.acento, margin: [0, 0, 0, 2] };
+    if (opciones.poppinsDisponible) estiloTitulo.font = 'PoppinsBold';
+
     return {
       stack: [
-        { text: 'Reporte de Asistencia', fontSize: 20, bold: true, color: COLORES.acento, margin: [0, 0, 0, 2] },
+        estiloTitulo,
         {
           text: 'Jornadas por persona: entrada, salida y tiempo registrado',
           fontSize: 10,
@@ -658,8 +661,14 @@ var ReporteJornadas = (function () {
           { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 511, y2: 0, lineWidth: 1, lineColor: COLORES.ruleLight }] },
           {
             columns: [
-              { text: textoGeneracion, fontSize: 9, color: COLORES.muted },
-              { text: 'Página ' + currentPage + ' de ' + pageCount, fontSize: 9, color: COLORES.muted, alignment: 'right' }
+              { text: textoGeneracion, fontSize: 9, color: COLORES.muted, width: '*' },
+              {
+                text: 'Página ' + currentPage + ' de ' + pageCount,
+                fontSize: 9,
+                color: COLORES.muted,
+                alignment: 'right',
+                width: 'auto'
+              }
             ],
             margin: [0, 6, 0, 0]
           }
@@ -669,7 +678,7 @@ var ReporteJornadas = (function () {
   }
 
   function buildDocDefinition(opciones) {
-    var contenido = [construirLetterhead(opciones), construirTitulo(), construirMetadatos(opciones), construirTablaJornadas(opciones)];
+    var contenido = [construirLetterhead(opciones), construirTitulo(opciones), construirMetadatos(opciones), construirTablaJornadas(opciones)];
 
     var firma = construirFirma(opciones);
     if (firma) contenido.push(firma);
@@ -725,10 +734,84 @@ var ReporteJornadas = (function () {
       .then(blobADataUrl);
   }
 
-  // Loads the resources the PDF needs (institutional crest for now) and
-  // caches the result. NEVER rejects: on any failure it resolves with
-  // whatever partial state it has, so PDF generation always falls back
-  // gracefully (no crest / Roboto only) instead of breaking the export.
+  function arrayBufferABase64(buffer) {
+    var binario = '';
+    var bytes = new Uint8Array(buffer);
+    for (var i = 0; i < bytes.byteLength; i++) {
+      binario += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binario);
+  }
+
+  function cargarFuenteBase64(url) {
+    return fetch(url)
+      .then(function (respuesta) {
+        if (!respuesta.ok) throw new Error('HTTP ' + respuesta.status + ' cargando ' + url);
+        return respuesta.arrayBuffer();
+      })
+      .then(arrayBufferABase64);
+  }
+
+  // The default Roboto family pdfmake.min.js falls back to when
+  // `pdfMake.fonts` is not set (see the bundled vfs_fonts.js keys). Kept
+  // explicit here because setting `pdfMake.fonts` at all REPLACES that
+  // default entirely instead of merging with it.
+  var FUENTE_ROBOTO = {
+    normal: 'Roboto-Regular.ttf',
+    bold: 'Roboto-Medium.ttf',
+    italics: 'Roboto-Italic.ttf',
+    bolditalics: 'Roboto-Italic.ttf'
+  };
+
+  var ARCHIVOS_POPPINS = ['Poppins-Regular.ttf', 'Poppins-Medium.ttf', 'Poppins-SemiBold.ttf', 'Poppins-Bold.ttf'];
+
+  // Loads Poppins into pdfMake.vfs/fonts, in ADDITION to the default Roboto
+  // (never replacing it). On any failure it leaves pdfMake.fonts untouched,
+  // so the PDF renders with Roboto instead of breaking.
+  function cargarPoppins(base) {
+    if (typeof pdfMake === 'undefined') return Promise.resolve(false);
+
+    var promesas = ARCHIVOS_POPPINS.map(function (archivo) {
+      return cargarFuenteBase64(base + 'public/fonts/poppins/' + archivo).then(function (base64) {
+        return { archivo: archivo, base64: base64 };
+      });
+    });
+
+    return Promise.all(promesas)
+      .then(function (resultados) {
+        pdfMake.vfs = pdfMake.vfs || {};
+        resultados.forEach(function (r) {
+          pdfMake.vfs[r.archivo] = r.base64;
+        });
+
+        pdfMake.fonts = {
+          Roboto: FUENTE_ROBOTO,
+          Poppins: {
+            normal: 'Poppins-Regular.ttf',
+            bold: 'Poppins-SemiBold.ttf',
+            italics: 'Poppins-Regular.ttf',
+            bolditalics: 'Poppins-SemiBold.ttf'
+          },
+          PoppinsBold: {
+            normal: 'Poppins-Bold.ttf',
+            bold: 'Poppins-Bold.ttf',
+            italics: 'Poppins-Bold.ttf',
+            bolditalics: 'Poppins-Bold.ttf'
+          }
+        };
+
+        return true;
+      })
+      .catch(function () {
+        return false;
+      });
+  }
+
+  // Loads the resources the PDF needs (institutional crest, Poppins fonts)
+  // and caches the result after the first successful attempt. NEVER
+  // rejects: on any failure it resolves with whatever partial state it
+  // has, so PDF generation always falls back gracefully (no crest and/or
+  // Roboto only) instead of breaking the export.
   function prepararRecursos(baseUrl) {
     if (_recursosPromise) return _recursosPromise;
     var base = baseUrl || '';
@@ -742,6 +825,10 @@ var ReporteJornadas = (function () {
       })
       .then(function (escudoDataUrl) {
         _recursos.escudoDataUrl = escudoDataUrl;
+        return cargarPoppins(base);
+      })
+      .then(function (poppinsDisponible) {
+        _recursos.poppinsDisponible = poppinsDisponible;
         return _recursos;
       })
       .catch(function () {
