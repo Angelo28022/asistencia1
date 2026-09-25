@@ -406,8 +406,15 @@ var ReporteJornadas = (function () {
       width: '*'
     });
 
+    // The emission date chosen in the responsable modal wins, so the
+    // letterhead and the signature block never disagree.
+    var responsable = opciones.responsable;
+    var fechaEmitido = responsable && responsable.fechaEmisionISO
+      ? formatearFechaInputISO(responsable.fechaEmisionISO)
+      : formatearFecha(opciones.fechaGeneracion);
+
     columnas.push({
-      text: 'Emitido el ' + formatearFecha(opciones.fechaGeneracion),
+      text: 'Emitido el ' + fechaEmitido,
       fontSize: 9,
       color: COLORES.muted,
       alignment: 'right',

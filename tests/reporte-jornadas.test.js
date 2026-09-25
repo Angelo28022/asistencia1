@@ -416,3 +416,21 @@ test('buildDocDefinition includes the crest image only when MOSTRAR_ESCUDO and a
   const sinEscudo = construirDocBase({ escudoDataUrl: null });
   assert.ok(!sinEscudo.images || Object.keys(sinEscudo.images).length === 0);
 });
+
+test('the letterhead "Emitido el" date matches the responsable emission date, falling back to the generation date', () => {
+  const conResponsable = construirDocBase({
+    fechaGeneracion: new Date(2026, 8, 25, 17, 22),
+    responsable: {
+      nombre: 'PowellS',
+      cargo: 'Gerente de Proyectos',
+      departamento: 'Gerencia',
+      fechaEmisionISO: '2026-09-24',
+    },
+  });
+  const textoCon = textoCompleto(conResponsable.content);
+  assert.ok(textoCon.includes('Emitido el 24/09/2026'), textoCon);
+  assert.ok(!textoCon.includes('Emitido el 25/09/2026'));
+
+  const sinResponsable = construirDocBase({ fechaGeneracion: new Date(2026, 8, 25, 17, 22), responsable: null });
+  assert.ok(textoCompleto(sinResponsable.content).includes('Emitido el 25/09/2026'));
+});
