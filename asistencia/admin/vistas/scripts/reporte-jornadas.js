@@ -360,6 +360,325 @@ var ReporteJornadas = (function () {
     return agruparJornadas(filas);
   }
 
+  // ---------------------------------------------------------------------
+  // pdfmake document builder
+  // ---------------------------------------------------------------------
+
+  function formatearFechaHoraCorta(fecha) {
+    return formatearFecha(fecha) + ' ' + pad2(fecha.getHours()) + ':' + pad2(fecha.getMinutes());
+  }
+
+  function celdaTexto(texto, extra) {
+    var celda = { text: texto };
+    if (extra) {
+      for (var k in extra) {
+        if (Object.prototype.hasOwnProperty.call(extra, k)) celda[k] = extra[k];
+      }
+    }
+    return celda;
+  }
+
+  function construirLetterhead(opciones) {
+    var columnas = [];
+
+    if (MOSTRAR_ESCUDO && opciones.escudoDataUrl) {
+      columnas.push({ image: 'escudo', width: 30, height: 30, margin: [0, 0, 10, 0] });
+    }
+
+    columnas.push({
+      stack: [
+        { text: INSTITUCION_NOMBRE, fontSize: 11, bold: true, color: COLORES.ink },
+        { text: 'Sistema de Control de Asistencia', fontSize: 9, color: COLORES.muted, margin: [0, 2, 0, 0] }
+      ],
+      width: '*'
+    });
+
+    columnas.push({
+      text: 'Emitido el ' + formatearFecha(opciones.fechaGeneracion),
+      fontSize: 9,
+      color: COLORES.muted,
+      alignment: 'right',
+      width: 'auto'
+    });
+
+    return {
+      stack: [
+        { columns: columnas, columnGap: 10 },
+        {
+          canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1.5, lineColor: COLORES.acento }],
+          margin: [0, 10, 0, 0]
+        }
+      ]
+    };
+  }
+
+  function construirTitulo() {
+    return {
+      stack: [
+        { text: 'Reporte de Asistencia', fontSize: 20, bold: true, color: COLORES.acento, margin: [0, 0, 0, 2] },
+        {
+          text: 'Jornadas por persona: entrada, salida y tiempo registrado',
+          fontSize: 10,
+          color: COLORES.muted
+        }
+      ],
+      margin: [0, 16, 0, 0]
+    };
+  }
+
+  function metaColumna(etiqueta, valor) {
+    return {
+      stack: [
+        { text: etiqueta, fontSize: 9, color: COLORES.muted, margin: [0, 0, 0, 2] },
+        { text: valor, fontSize: 10.5, bold: true, color: COLORES.ink }
+      ]
+    };
+  }
+
+  function construirMetadatos(opciones) {
+    var totales = opciones.agrupado.totales;
+    var periodoTexto = formatearFecha(opciones.periodoInicio) + ' al ' + formatearFecha(opciones.periodoFin);
+
+    return {
+      table: {
+        widths: ['*', '*', '*', '*'],
+        body: [
+          [
+            metaColumna('Periodo', periodoTexto),
+            metaColumna('Personas', String(totales.personas)),
+            metaColumna('Jornadas', String(totales.jornadas)),
+            metaColumna('Tiempo total', formatDuracion(totales.segundos))
+          ]
+        ]
+      },
+      layout: {
+        hLineWidth: function () {
+          return 1;
+        },
+        vLineWidth: function () {
+          return 0;
+        },
+        hLineColor: function () {
+          return COLORES.rule;
+        },
+        paddingTop: function () {
+          return 10;
+        },
+        paddingBottom: function () {
+          return 10;
+        }
+      },
+      margin: [0, 14, 0, 0]
+    };
+  }
+
+  function construirFilaEncabezadoTabla() {
+    var estiloEncabezado = { bold: true, fontSize: 9, color: COLORES.acento, fillColor: COLORES.headerFill };
+    return [
+      celdaTexto('FECHA', estiloEncabezado),
+      celdaTexto('ENTRADA', estiloEncabezado),
+      celdaTexto('SALIDA', estiloEncabezado),
+      celdaTexto('TIEMPO', Object.assign({ alignment: 'right' }, estiloEncabezado))
+    ];
+  }
+
+  function construirFilaGrupo(persona) {
+    var etiquetaJornadas = persona.totalJornadas + (persona.totalJornadas === 1 ? ' jornada' : ' jornadas');
+    var subtitulo = 'C.I. ' + (persona.cedula || 's/c') + (persona.cargo ? ' · ' + persona.cargo : '');
+
+    var celda = {
+      colSpan: 4,
+      columns: [
+        {
+          stack: [
+            { text: persona.nombreCompleto, fontSize: 10.5, bold: true, color: COLORES.ink },
+            { text: subtitulo, fontSize: 9, color: COLORES.muted, margin: [0, 1, 0, 0] }
+          ],
+          width: '*'
+        },
+        {
+          text: [
+            { text: etiquetaJornadas + ' · ', fontSize: 9, color: COLORES.muted },
+            { text: formatDuracion(persona.totalSegundos), fontSize: 9, bold: true, color: COLORES.ink }
+          ],
+          alignment: 'right',
+          width: 'auto'
+        }
+      ],
+      columnGap: 10,
+      margin: [0, 10, 0, 6],
+      fillColor: null
+    };
+
+    return [celda, {}, {}, {}];
+  }
+
+  function construirFilaJornada(jornada) {
+    var entradaTexto = jornada.entrada ? formatearHora(jornada.entrada) : '—';
+    var salidaTexto = jornada.salida ? formatearHora(jornada.salida) : '—';
+    var tiempoTexto = jornada.incompleta ? jornada.motivo : formatDuracion(jornada.segundos);
+    var tiempoEstilo = { alignment: 'right' };
+    if (jornada.incompleta) {
+      tiempoEstilo.color = COLORES.incompleta;
+    } else {
+      tiempoEstilo.bold = true;
+    }
+
+    return [
+      celdaTexto(formatearFecha(jornada.fecha), { fontSize: 10 }),
+      celdaTexto(entradaTexto, { fontSize: 10 }),
+      celdaTexto(salidaTexto, { fontSize: 10 }),
+      celdaTexto(tiempoTexto, Object.assign({ fontSize: 10 }, tiempoEstilo))
+    ];
+  }
+
+  function construirTablaJornadas(opciones) {
+    var cuerpo = [construirFilaEncabezadoTabla()];
+
+    opciones.agrupado.personas.forEach(function (persona) {
+      cuerpo.push(construirFilaGrupo(persona));
+      persona.jornadas.forEach(function (jornada) {
+        cuerpo.push(construirFilaJornada(jornada));
+      });
+    });
+
+    return {
+      table: {
+        headerRows: 1,
+        dontBreakRows: true,
+        widths: ['*', 100, 100, 80],
+        body: cuerpo
+      },
+      layout: {
+        hLineWidth: function (i) {
+          return i === 1 ? 1 : 0.5;
+        },
+        vLineWidth: function () {
+          return 0;
+        },
+        hLineColor: function (i, node) {
+          if (i === 1) return COLORES.acento;
+          var filaActual = node.table.body[i];
+          var esGrupo = filaActual && filaActual[0] && filaActual[0].colSpan === 4;
+          return esGrupo ? COLORES.rule : COLORES.ruleLight;
+        },
+        paddingTop: function (i) {
+          return i === 0 ? 8 : 6;
+        },
+        paddingBottom: function () {
+          return 6;
+        }
+      },
+      margin: [0, 18, 0, 0]
+    };
+  }
+
+  function construirFirma(opciones) {
+    var responsable = opciones.responsable;
+    if (!responsable || !responsable.nombre) return null;
+
+    var fechaEmisionTexto = formatearFechaInputISO(responsable.fechaEmisionISO);
+
+    return {
+      margin: [0, 24, 0, 0],
+      stack: [
+        {
+          canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: COLORES.rule }]
+        },
+        {
+          columns: [
+            {
+              width: '*',
+              stack: [
+                {
+                  text: 'RESPONSABLE DEL REPORTE',
+                  fontSize: 9,
+                  bold: true,
+                  color: COLORES.acento,
+                  margin: [0, 14, 0, 8]
+                },
+                {
+                  table: {
+                    widths: ['auto', '*'],
+                    body: [
+                      [celdaTexto('Nombre', { fontSize: 9, color: COLORES.muted }), celdaTexto(responsable.nombre, { fontSize: 10 })],
+                      [celdaTexto('Cargo', { fontSize: 9, color: COLORES.muted }), celdaTexto(responsable.cargo || '', { fontSize: 10 })],
+                      [
+                        celdaTexto('Departamento', { fontSize: 9, color: COLORES.muted }),
+                        celdaTexto(responsable.departamento || '', { fontSize: 10 })
+                      ],
+                      [
+                        celdaTexto('Fecha de emisión', { fontSize: 9, color: COLORES.muted }),
+                        celdaTexto(fechaEmisionTexto, { fontSize: 10 })
+                      ]
+                    ]
+                  },
+                  layout: 'noBorders'
+                }
+              ]
+            },
+            {
+              width: '*',
+              stack: [
+                { text: ' ', margin: [0, 30, 0, 0] },
+                { canvas: [{ type: 'line', x1: 60, y1: 0, x2: 455, y2: 0, lineWidth: 1, lineColor: COLORES.ink }] },
+                { text: responsable.nombre, fontSize: 10.5, bold: true, alignment: 'center', margin: [0, 6, 0, 0] },
+                { text: 'Firma y sello', fontSize: 9, color: COLORES.muted, alignment: 'center' }
+              ]
+            }
+          ],
+          columnGap: 30
+        }
+      ]
+    };
+  }
+
+  function construirFooter(opciones) {
+    var textoGeneracion = 'Generado por el Sistema de Control de Asistencia · ' + formatearFechaHoraCorta(opciones.fechaGeneracion);
+    return function (currentPage, pageCount) {
+      return {
+        margin: [42, 0, 42, 20],
+        stack: [
+          { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 511, y2: 0, lineWidth: 1, lineColor: COLORES.ruleLight }] },
+          {
+            columns: [
+              { text: textoGeneracion, fontSize: 9, color: COLORES.muted },
+              { text: 'Página ' + currentPage + ' de ' + pageCount, fontSize: 9, color: COLORES.muted, alignment: 'right' }
+            ],
+            margin: [0, 6, 0, 0]
+          }
+        ]
+      };
+    };
+  }
+
+  function buildDocDefinition(opciones) {
+    var contenido = [construirLetterhead(opciones), construirTitulo(), construirMetadatos(opciones), construirTablaJornadas(opciones)];
+
+    var firma = construirFirma(opciones);
+    if (firma) contenido.push(firma);
+
+    var doc = {
+      pageSize: 'A4',
+      pageOrientation: 'portrait',
+      pageMargins: [42, 36, 42, 48],
+      content: contenido,
+      footer: construirFooter(opciones),
+      defaultStyle: {
+        font: opciones.poppinsDisponible ? 'Poppins' : 'Roboto',
+        fontSize: 10,
+        color: COLORES.ink
+      },
+      styles: {}
+    };
+
+    if (MOSTRAR_ESCUDO && opciones.escudoDataUrl) {
+      doc.images = { escudo: opciones.escudoDataUrl };
+    }
+
+    return doc;
+  }
+
   return {
     INSTITUCION_NOMBRE: INSTITUCION_NOMBRE,
     MOSTRAR_ESCUDO: MOSTRAR_ESCUDO,
@@ -378,7 +697,9 @@ var ReporteJornadas = (function () {
     mapearColumnas: mapearColumnas,
     extraerFilas: extraerFilas,
     agruparJornadas: agruparJornadas,
-    procesarTabla: procesarTabla
+    procesarTabla: procesarTabla,
+
+    buildDocDefinition: buildDocDefinition
   };
 })();
 

@@ -232,3 +232,171 @@ test('groups by full name when cédula is missing, and cargo missing does not cr
   assert.equal(resultado.personas[0].cargo, '');
   assert.equal(resultado.personas[0].jornadas[0].segundos, 8 * 3600);
 });
+
+test('formatearFechaInputISO formats yyyy-mm-dd without a UTC day-shift', () => {
+  // new Date('2026-09-24') is parsed as UTC midnight; in a negative UTC
+  // offset zone (e.g. America/Caracas, UTC-4) toLocaleDateString would show
+  // 23/09/2026 instead of 24/09/2026. Splitting the string avoids that.
+  assert.equal(ReporteJornadas.formatearFechaInputISO('2026-09-24'), '24/09/2026');
+  assert.equal(ReporteJornadas.formatearFechaInputISO(''), '');
+});
+
+// ---------------------------------------------------------------------------
+// buildDocDefinition — pdfmake document structure (T2)
+// ---------------------------------------------------------------------------
+
+// Only descends into pdfmake's content-bearing keys, so style properties
+// that happen to be strings (color, alignment, fillColor, ...) are never
+// mistaken for visible text.
+const CLAVES_CONTENIDO = ['text', 'stack', 'columns', 'content'];
+
+function aplanarTextos(nodo, out) {
+  if (nodo === null || nodo === undefined) return out;
+  if (typeof nodo === 'string') {
+    out.push(nodo);
+    return out;
+  }
+  if (typeof nodo !== 'object') {
+    return out;
+  }
+  if (Array.isArray(nodo)) {
+    nodo.forEach((n) => aplanarTextos(n, out));
+    return out;
+  }
+  if (nodo.table && Array.isArray(nodo.table.body)) {
+    aplanarTextos(nodo.table.body, out);
+  }
+  CLAVES_CONTENIDO.forEach((clave) => {
+    if (Object.prototype.hasOwnProperty.call(nodo, clave)) aplanarTextos(nodo[clave], out);
+  });
+  return out;
+}
+
+function textoCompleto(nodo) {
+  return aplanarTextos(nodo, []).join(' | ');
+}
+
+function encontrarTablaPrincipal(nodo) {
+  if (nodo === null || nodo === undefined || typeof nodo !== 'object') return null;
+  if (Array.isArray(nodo)) {
+    for (const item of nodo) {
+      const r = encontrarTablaPrincipal(item);
+      if (r) return r;
+    }
+    return null;
+  }
+  if (nodo.table && nodo.table.headerRows === 1 && Array.isArray(nodo.table.widths) && nodo.table.widths.length === 4) {
+    return nodo.table;
+  }
+  for (const key of Object.keys(nodo)) {
+    const r = encontrarTablaPrincipal(nodo[key]);
+    if (r) return r;
+  }
+  return null;
+}
+
+function construirDocBase(overrides) {
+  const agrupado = agrupar(HEADER, FIXTURE_ROWS);
+  return ReporteJornadas.buildDocDefinition(
+    Object.assign(
+      {
+        agrupado,
+        periodoInicio: new Date(2025, 6, 15),
+        periodoFin: new Date(2025, 6, 15),
+        responsable: null,
+        escudoDataUrl: null,
+        fechaGeneracion: new Date(2026, 8, 24, 16, 50),
+        poppinsDisponible: false,
+      },
+      overrides || {}
+    )
+  );
+}
+
+test('buildDocDefinition builds a table with a single header row and 4 columns', () => {
+  const doc = construirDocBase();
+  const tabla = encontrarTablaPrincipal(doc.content);
+  assert.ok(tabla, 'expected to find the shifts table in doc.content');
+  assert.equal(tabla.headerRows, 1);
+  assert.deepEqual(tabla.widths, ['*', 100, 100, 80]);
+  assert.equal(tabla.dontBreakRows, true);
+
+  const header = tabla.body[0];
+  assert.equal(header.length, 4);
+  assert.equal(textoCompleto(header[0]), 'FECHA');
+  assert.equal(textoCompleto(header[1]), 'ENTRADA');
+  assert.equal(textoCompleto(header[2]), 'SALIDA');
+  assert.equal(textoCompleto(header[3]), 'TIEMPO');
+});
+
+test('buildDocDefinition renders one group row per person plus one row per shift', () => {
+  const doc = construirDocBase();
+  const tabla = encontrarTablaPrincipal(doc.content);
+
+  // header (1) + Diego (1 group + 1 shift) + Guy (1 group + 1 shift) + Teodosio (1 group + 2 shifts)
+  assert.equal(tabla.body.length, 1 + 2 + 2 + 3);
+
+  const filasGrupo = tabla.body.filter((fila) => fila[0] && fila[0].colSpan === 4);
+  assert.equal(filasGrupo.length, 3);
+  assert.ok(textoCompleto(filasGrupo[0]).includes('Diego Andres Avendaño Gudiño'));
+  assert.ok(textoCompleto(filasGrupo[0]).includes('C.I. 26881623'));
+  assert.ok(textoCompleto(filasGrupo[0]).includes('Docente'));
+  assert.ok(textoCompleto(filasGrupo[0]).includes('1 jornada'));
+  assert.ok(textoCompleto(filasGrupo[2]).includes('2 jornadas'));
+});
+
+test('buildDocDefinition renders an incomplete shift with "—" and the reason in accent color', () => {
+  const rows = [['111', 'Ana', 'Perez', 'Docente', 'Entrada', '15/07/2025 08:00:00 AM']];
+  const agrupado = agrupar(HEADER, rows);
+  const doc = construirDocBase({ agrupado });
+  const tabla = encontrarTablaPrincipal(doc.content);
+
+  const filaTurno = tabla.body[tabla.body.length - 1];
+  assert.equal(textoCompleto(filaTurno[1]), '08:00:00');
+  assert.equal(textoCompleto(filaTurno[2]), '—');
+  assert.equal(textoCompleto(filaTurno[3]), 'Sin salida');
+  assert.equal(filaTurno[3].color, '#9a3412');
+});
+
+test('buildDocDefinition omits the signature block when no responsable name is given', () => {
+  const sinResponsable = construirDocBase({ responsable: null });
+  assert.ok(!textoCompleto(sinResponsable.content).includes('RESPONSABLE DEL REPORTE'));
+
+  const conResponsable = construirDocBase({
+    responsable: {
+      nombre: 'PowellS',
+      cargo: 'Gerente de Proyectos',
+      departamento: 'Gerencia',
+      fechaEmisionISO: '2026-09-24',
+    },
+  });
+  const texto = textoCompleto(conResponsable.content);
+  assert.ok(texto.includes('RESPONSABLE DEL REPORTE'));
+  assert.ok(texto.includes('PowellS'));
+  assert.ok(texto.includes('Gerente de Proyectos'));
+  assert.ok(texto.includes('24/09/2026'));
+});
+
+test('buildDocDefinition footer renders generation timestamp and page X of Y', () => {
+  const doc = construirDocBase();
+  const footer = doc.footer(2, 3, { width: 595, height: 842 });
+  const texto = textoCompleto(footer);
+  assert.ok(texto.includes('24/09/2026'));
+  assert.ok(texto.includes('16:50'));
+  assert.ok(texto.includes('Página 2 de 3'));
+});
+
+test('buildDocDefinition uses Poppins as defaultStyle font only when available', () => {
+  const conPoppins = construirDocBase({ poppinsDisponible: true });
+  const sinPoppins = construirDocBase({ poppinsDisponible: false });
+  assert.equal(conPoppins.defaultStyle.font, 'Poppins');
+  assert.equal(sinPoppins.defaultStyle.font, 'Roboto');
+});
+
+test('buildDocDefinition includes the crest image only when MOSTRAR_ESCUDO and a data URL are given', () => {
+  const conEscudo = construirDocBase({ escudoDataUrl: 'data:image/png;base64,AAAA' });
+  assert.ok(conEscudo.images && Object.keys(conEscudo.images).length === 1);
+
+  const sinEscudo = construirDocBase({ escudoDataUrl: null });
+  assert.ok(!sinEscudo.images || Object.keys(sinEscudo.images).length === 0);
+});
