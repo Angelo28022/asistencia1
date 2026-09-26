@@ -16,6 +16,10 @@ services:
 
   db:
     image: mariadb:10.11
+    # Same non-strict SQL mode the app was built on (XAMPP): its INSERTs omit
+    # NOT NULL columns such as usuarios.email/idmensaje and rely on MariaDB
+    # filling '' / 0, which the image's default STRICT_TRANS_TABLES rejects.
+    command: --sql-mode=ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
     environment:
       MARIADB_ROOT_PASSWORD: root
       MARIADB_DATABASE: control_asistencia
