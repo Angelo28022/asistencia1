@@ -1,0 +1,37 @@
+/* =========================================================================
+   RESPONSIVE LAYER
+   Additive layer loaded AFTER actualizacion.css. Keeps every existing color
+   (sidebar, navbar, buttons, dashboard cards) untouched; only adds layout,
+   spacing and touch-target rules needed to make the site work on phones and
+   tablets. See odd/tasks/responsive-ui.md and odd/design/responsive-ui/ for
+   the approved spec this file implements, task by task.
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   T1 — Foundations
+   - No accidental horizontal scrollbars from wide children.
+   - Inputs render at >=16px on phones (prevents iOS Safari auto-zoom).
+   - Primary touch targets are >=44px tall on phones.
+   ------------------------------------------------------------------------- */
+
+html, body {
+    max-width: 100%;
+}
+
+@media (max-width: 480px) {
+    .form-control,
+    input,
+    select,
+    textarea,
+    .selectpicker + .dropdown-toggle {
+        font-size: 16px !important;
+    }
+
+    .btn,
+    button,
+    input[type="submit"],
+    input[type="button"],
+    a.sidebar-toggle {
+        min-height: 44px;
+    }
+}

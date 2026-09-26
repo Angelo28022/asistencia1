@@ -11,7 +11,7 @@ if (strlen(session_id())<1)
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
    <title>CE |inicio</title>
     <!-- Tell the browser to be responsive to screen width -->
-    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
     <!-- Bootstrap 3 -->
     <link rel="stylesheet" href="../public/css/bootstrap.min.css">
     <!-- Font Awesome -->
@@ -33,7 +33,8 @@ if (strlen(session_id())<1)
     <!-- cambios sara -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="../public/css/actualizacion.css">
+<link rel="stylesheet" href="../public/css/actualizacion.css?v=1">
+<link rel="stylesheet" href="../public/css/responsive.css?v=1">
 
   </head>
 

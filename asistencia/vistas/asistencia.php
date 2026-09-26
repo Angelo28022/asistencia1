@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>SISTEMA ASISTENCIA</title>
     <!-- Tell the browser to be responsive to screen width -->
-    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
     <!-- Bootstrap 3.3.5 -->
     <link rel="stylesheet" href="../admin/public/css/bootstrap.min.css">
     <!-- Font Awesome -->
@@ -14,8 +14,9 @@
     <link rel="stylesheet" href="../admin/public/css/AdminLTE.min.css">
     <!-- iCheck -->
     <link rel="stylesheet" href="../admin/public/css/blue.css">
-    <link rel="shortcut icon" href="../admin/public/img/escudo.png">
-    <link rel="stylesheet" href="../admin/public/css/actualizacion.css?v=999">
+    <link rel="shortcut icon" href="../admin/public/img/escudo-256.png">
+    <link rel="stylesheet" href="../admin/public/css/actualizacion.css?v=1">
+    <link rel="stylesheet" href="../admin/public/css/responsive.css?v=1">
 
   </head>
 <body class="hold-transition lockscreen">
@@ -39,7 +40,7 @@
   <div class="lockscreen-item">
     <!-- lockscreen image -->
     <div class="lockscreen-image">
-      <img src="/asistencia/admin/public/img/escudo.png" alt="escudo">
+      <img src="/asistencia/admin/public/img/escudo-256.png" alt="escudo">
       
     </div>
     <!-- /.lockscreen-image -->
