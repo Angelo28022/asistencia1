@@ -204,5 +204,8 @@ if (strlen(session_id())<1)
         -->
       </ul>
     </section>
-     
+
   </aside>
+  <!-- Scrim shown behind the drawer on phones; tapping it closes the menu
+       (see footer.php for the close-on-scrim/Escape/link script). -->
+  <div class="sidebar-overlay" aria-hidden="true"></div>

@@ -97,5 +97,24 @@
       });
     </script>
 
-</body> 
+    <script>
+      // Phone drawer: close on scrim tap, Escape, or tapping a real nav
+      // link. AdminLTE's own PushMenu keeps handling the hamburger toggle
+      // and the sidebar-open/sidebar-collapse classes; this only adds the
+      // extra ways of dismissing it that the stock widget doesn't cover.
+      (function () {
+        function closeDrawer() {
+          $('body').removeClass('sidebar-open');
+        }
+        $(document).on('click', '.sidebar-overlay', closeDrawer);
+        $(document).on('click', '.sidebar-menu a[href]:not([href="#"])', function () {
+          if ($(window).width() < 768) closeDrawer();
+        });
+        $(document).on('keydown', function (e) {
+          if (e.key === 'Escape' || e.keyCode === 27) closeDrawer();
+        });
+      })();
+    </script>
+
+</body>
 </html>

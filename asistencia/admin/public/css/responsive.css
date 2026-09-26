@@ -35,3 +35,123 @@ html, body {
         min-height: 44px;
     }
 }
+
+/* -------------------------------------------------------------------------
+   T2 — Navigation
+   Phones (<768px): drawer OVER the content with a scrim, not a push.
+   Tablets (768-1199px): collapsed icon rail with labels.
+   Desktop (>=1200px): AdminLTE's stock fixed sidebar, unchanged.
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+    /* Stock AdminLTE translates .content-wrapper/.main-footer by 230px when
+       the drawer opens; keep the content in place instead. */
+    .sidebar-open .content-wrapper,
+    .sidebar-open .right-side,
+    .sidebar-open .main-footer {
+        transform: none !important;
+    }
+
+    .main-sidebar,
+    .left-side {
+        width: min(300px, 84vw) !important;
+        padding-top: 56px !important;
+        z-index: 1030 !important;
+        /* AdminLTE's stock closed-state transform is a hardcoded -230px,
+           which no longer fully hides a wider drawer; -100% always moves
+           it fully off-screen regardless of width. */
+        transform: translateX(-100%);
+    }
+    .sidebar-open .main-sidebar,
+    .sidebar-open .left-side {
+        transform: translateX(0);
+    }
+
+    /* Compact single-row top bar: hide the logo block, keep the navbar. */
+    .main-header .logo {
+        display: none !important;
+    }
+    .main-header .navbar,
+    .main-header .navbar-static-top {
+        min-height: 56px !important;
+    }
+
+    /* Scrim: dims the content while the drawer is open; tapping it closes
+       the drawer (see footer.php for the click/Escape handlers). */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 16, 38, .5);
+        z-index: 1020;
+    }
+    body.sidebar-open .sidebar-overlay {
+        display: block;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+    .main-sidebar,
+    .left-side {
+        width: 72px !important;
+        overflow: visible !important;
+    }
+    .content-wrapper,
+    .right-side,
+    .main-footer {
+        margin-left: 72px !important;
+    }
+    .main-header .logo {
+        width: 72px !important;
+    }
+    .main-header .navbar {
+        margin-left: 72px !important;
+    }
+
+    .user-panel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 12px 4px !important;
+    }
+    .user-panel .pull-left.image {
+        float: none;
+        margin: 0 auto;
+    }
+    .user-panel .pull-left.info {
+        display: none;
+    }
+
+    .sidebar-menu > li.header {
+        display: none;
+    }
+    .sidebar-menu > li > a {
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        height: 56px;
+        padding: 4px !important;
+        font-size: 9px;
+        text-align: center;
+        border-radius: 10px;
+    }
+    .sidebar-menu > li > a i {
+        font-size: 18px;
+        width: auto;
+    }
+    .sidebar-menu > li > a > .pull-right-container {
+        display: none;
+    }
+    .sidebar-menu .treeview-menu {
+        position: static;
+        width: auto;
+    }
+    .sidebar-menu .treeview-menu > li > a {
+        padding-left: 8px !important;
+        font-size: 11px;
+        word-break: break-word;
+    }
+}
