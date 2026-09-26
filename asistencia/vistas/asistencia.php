@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="../admin/public/css/blue.css">
     <link rel="shortcut icon" href="../admin/public/img/escudo-256.png">
     <link rel="stylesheet" href="../admin/public/css/actualizacion.css?v=1">
-    <link rel="stylesheet" href="../admin/public/css/responsive.css?v=4">
+    <link rel="stylesheet" href="../admin/public/css/responsive.css?v=5">
 
   </head>
 <body class="hold-transition lockscreen">

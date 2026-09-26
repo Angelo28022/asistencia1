@@ -39,8 +39,9 @@ html, body {
 /* -------------------------------------------------------------------------
    T2 — Navigation
    Phones (<768px): drawer OVER the content with a scrim, not a push.
-   Tablets (768-1199px): collapsed icon rail with labels.
-   Desktop (>=1200px): AdminLTE's stock fixed sidebar, unchanged.
+   Tablets (768-1199px): icon rail with labels (collapsed by default).
+   Desktop (>=1200px): stock fixed sidebar; the hamburger collapses it to
+   the same icon rail.
    ------------------------------------------------------------------------- */
 
 @media (max-width: 767px) {
@@ -90,69 +91,130 @@ html, body {
     }
 }
 
-@media (min-width: 768px) and (max-width: 1199px) {
-    .main-sidebar,
-    .left-side {
-        width: 72px !important;
+/* Icon rail. Tablets (768-1199px) start collapsed (footer.php adds
+   AdminLTE's .sidebar-collapse there) and desktop collapses to the same
+   rail when the hamburger is tapped. This restyles AdminLTE's 50px
+   "sidebar-mini" mode: a wider rail, the crest instead of the truncated
+   "SIS" text, labels under the icons, and submenus as flyouts to the
+   right (hover with a mouse, tap on touch). Colors are the existing ones. */
+@media (min-width: 768px) {
+    body.sidebar-mini.sidebar-collapse {
+        --rail-w: 88px;
+    }
+
+    body.sidebar-mini.sidebar-collapse .main-sidebar,
+    body.sidebar-mini.sidebar-collapse .left-side {
+        width: var(--rail-w) !important;
         overflow: visible !important;
     }
-    .content-wrapper,
-    .right-side,
-    .main-footer {
-        margin-left: 72px !important;
+    body.sidebar-mini.sidebar-collapse .content-wrapper,
+    body.sidebar-mini.sidebar-collapse .right-side,
+    body.sidebar-mini.sidebar-collapse .main-footer {
+        margin-left: var(--rail-w) !important;
     }
-    .main-header .logo {
-        width: 72px !important;
+    body.sidebar-mini.sidebar-collapse .main-header .logo {
+        width: var(--rail-w) !important;
+        padding: 0 !important;
     }
-    .main-header .navbar {
-        margin-left: 72px !important;
-    }
-
-    .user-panel {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        padding: 12px 4px !important;
-    }
-    .user-panel .pull-left.image {
-        float: none;
-        margin: 0 auto;
-    }
-    .user-panel .pull-left.info {
-        display: none;
+    body.sidebar-mini.sidebar-collapse .main-header .navbar {
+        margin-left: var(--rail-w) !important;
     }
 
-    .sidebar-menu > li.header {
-        display: none;
+    /* Crest instead of the truncated "SIS" text. */
+    body.sidebar-mini.sidebar-collapse .main-header .logo > .logo-mini {
+        display: block !important;
+        height: 50px;
+        margin: 0 !important;
+        font-size: 0 !important;
+        background: url(../img/escudo-256.png) center / 34px 34px no-repeat;
     }
-    .sidebar-menu > li > a {
+    body.sidebar-mini.sidebar-collapse .main-header .logo > .logo-lg {
+        display: none !important;
+    }
+
+    /* The crest already sits in the logo slot and the user block has no
+       room in the rail; the section header is redundant there too. */
+    body.sidebar-mini.sidebar-collapse .user-panel,
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li.header {
+        display: none !important;
+    }
+
+    body.sidebar-mini.sidebar-collapse .sidebar-menu {
+        padding: 10px 4px;
+    }
+    /* actualizacion.css pads every item 0 12px, which in the rail leaves
+       ~44px for the label; the rail keeps the full width instead. 88px is
+       what the longest label ("Departamento", Poppins 9.5px) needs. */
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li {
+        margin-bottom: 4px;
+        padding: 0;
+    }
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li > a {
         display: flex !important;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 3px;
-        height: 56px;
-        padding: 4px !important;
-        font-size: 9px;
-        text-align: center;
+        gap: 4px;
+        min-height: 56px;
+        padding: 6px 0 !important;
         border-radius: 10px;
+        text-align: center;
     }
-    .sidebar-menu > li > a i {
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li > a > i {
+        width: auto;
+        margin: 0;
         font-size: 18px;
-        width: auto;
     }
-    .sidebar-menu > li > a > .pull-right-container {
-        display: none;
+
+    /* Labels under the icons: AdminLTE hides them, or pops them out as a
+       floating tab on hover. Keep them in flow in both cases. */
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li > a > span:not(.pull-right-container),
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li:hover > a > span:not(.pull-right-container) {
+        display: block !important;
+        position: static !important;
+        width: auto !important;
+        max-width: 100%;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        font-size: 9.5px;
+        line-height: 1.2;
+        letter-spacing: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
-    .sidebar-menu .treeview-menu {
-        position: static;
-        width: auto;
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li > a > .pull-right-container {
+        display: none !important;
     }
-    .sidebar-menu .treeview-menu > li > a {
-        padding-left: 8px !important;
-        font-size: 11px;
-        word-break: break-word;
+
+    /* Submenus as flyouts next to the rail: on hover (mouse) or once the
+       tree widget marks the item open (tap on touch screens). */
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li > .treeview-menu {
+        display: none !important;
+    }
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li:hover > .treeview-menu,
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li.menu-open > .treeview-menu {
+        display: block !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 100% !important;
+        width: 210px !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 6px 0 !important;
+        background: #0c3484 !important;
+        border-radius: 0 10px 10px 0;
+        box-shadow: 0 10px 25px rgba(2, 13, 35, .25);
+        z-index: 1000;
+    }
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li > .treeview-menu > li > a {
+        display: flex !important;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 16px !important;
+        font-size: 14px;
+        white-space: nowrap;
     }
 }
 

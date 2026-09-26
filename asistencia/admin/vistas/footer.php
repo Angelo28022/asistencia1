@@ -114,6 +114,26 @@
           if (e.key === 'Escape' || e.keyCode === 27) closeDrawer();
         });
       })();
+
+      // Tablets (768-1199px) start with the icon rail (AdminLTE's collapsed
+      // sidebar, restyled in responsive.css); phones and desktop start
+      // without it. Only reacts when the width crosses into another range,
+      // so the user's hamburger toggle is not undone by every resize.
+      (function () {
+        var currentRange = null;
+        function widthRange() {
+          var w = window.innerWidth;
+          return w < 768 ? 'phone' : (w < 1200 ? 'tablet' : 'desktop');
+        }
+        function applyRange() {
+          var range = widthRange();
+          if (range === currentRange) return;
+          currentRange = range;
+          $('body').toggleClass('sidebar-collapse', range === 'tablet');
+        }
+        applyRange();
+        $(window).on('resize', applyRange);
+      })();
     </script>
 
 </body>
