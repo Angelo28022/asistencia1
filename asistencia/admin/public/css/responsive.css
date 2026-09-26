@@ -155,3 +155,90 @@ html, body {
         word-break: break-word;
     }
 }
+
+/* actualizacion.css turns .row into a flex container; a bare col-md-12
+   (no col-xs-12/col-sm-12 companion, as used by escritorio.php) only gets
+   width:100% from its own min-width:992px rule, so as a flex item it
+   shrinks to fit its content between 768-991px. Keep it full width at
+   every size instead of only >=992px. */
+.row > .col-lg-12,
+.row > .col-md-12,
+.row > .col-sm-12,
+.row > .col-xs-12 {
+    flex: 1 1 100%;
+    max-width: 100%;
+}
+
+/* -------------------------------------------------------------------------
+   T3 — Dashboard (escritorio.php)
+   Replaces the Bootstrap col-lg-4/col-md-4/col-sm-4/col-xs-12 float grid
+   (scoped to .dashboard-grid / .dashboard-card, added in escritorio.php)
+   with a CSS grid: one full-width column on phones, auto-fill from
+   tablets up so the row fills the available width instead of leaving a
+   fixed 3-up layout with a gutter. Gradients/colors are untouched.
+   ------------------------------------------------------------------------- */
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+/* .panel-body (Bootstrap) gives this element clearfix ::before/::after
+   pseudo-elements (content:" "; display:table); left alone, display:table
+   makes each one an actual grid item and pushes the real cards out of
+   place. Suppress them here. */
+.dashboard-grid::before,
+.dashboard-grid::after {
+    content: none;
+    display: none;
+}
+
+.dashboard-grid .dashboard-card {
+    width: auto;
+    float: none;
+    padding: 0;
+    min-width: 0;
+}
+
+@media (min-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 20px;
+    }
+}
+
+/* Keep the green-to-yellow card's white text readable on its lightest
+   (yellow) end. */
+.dashboard-grid .bg-aqua,
+.dashboard-grid .bg-aqua .inner,
+.dashboard-grid .bg-aqua .small-box-footer {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+}
+
+@media (max-width: 767px) {
+    .dashboard-grid .small-box {
+        min-height: 76px !important;
+    }
+    .dashboard-grid .small-box .inner {
+        padding: 14px 18px !important;
+    }
+    .dashboard-grid .small-box h4,
+    .dashboard-grid .small-box h5 {
+        font-size: 16px !important;
+        height: auto !important;
+        margin: 0 0 4px 0 !important;
+    }
+    .dashboard-grid .small-box p {
+        font-size: 12px !important;
+    }
+    .dashboard-grid .small-box .icon {
+        font-size: 40px;
+        top: 12px;
+        right: 14px;
+    }
+    .dashboard-grid .small-box-footer {
+        padding: 8px !important;
+        font-size: 12px !important;
+    }
+}

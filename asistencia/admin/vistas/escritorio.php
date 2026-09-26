@@ -22,11 +22,11 @@ require_once('../modelos/Usuario.php');
       <div class="row">
         <div class="col-md-12">
       <div class="box">
-<div class="panel-body">
+<div class="panel-body dashboard-grid">
 
 <?php if ($_SESSION['tipousuario']=='Administrador') {
 ?>
-<div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+<div class="dashboard-card">
   <div class="small-box bg-green">
     
     <a href="asistencia.php" class="small-box-footer">
@@ -49,7 +49,7 @@ require_once('../modelos/Usuario.php');
 <?php } ?>
 <?php if ($_SESSION['tipousuario']!='Administrador') {
 ?>
-<div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+<div class="dashboard-card">
   <div class="small-box bg-green">
     
     <a href="asistenciau.php" class="small-box-footer">
@@ -75,7 +75,7 @@ require_once('../modelos/Usuario.php');
 
 <?php if ($_SESSION['tipousuario']=='Administrador') {
 ?>
-<div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+<div class="dashboard-card">
   <div class="small-box bg-orange">
     <div class="inner">
       <h4 style="font-size: 20px;">
@@ -94,7 +94,7 @@ require_once('../modelos/Usuario.php');
 
 <?php if ($_SESSION['tipousuario']=='Administrador') {
 ?>
-<div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+<div class="dashboard-card">
   <div class="small-box bg-aqua">
     
     <a href="rptasistencia.php" class="small-box-footer">
@@ -117,7 +117,7 @@ require_once('../modelos/Usuario.php');
 <?php } ?>
 <?php if ($_SESSION['tipousuario']!='Administrador') {
 ?>
-<div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+<div class="dashboard-card">
   <div class="small-box bg-aqua">
     
     <a href="rptasistenciau.php" class="small-box-footer">
