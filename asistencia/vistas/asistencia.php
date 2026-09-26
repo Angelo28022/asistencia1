@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="../admin/public/css/blue.css">
     <link rel="shortcut icon" href="../admin/public/img/escudo-256.png">
     <link rel="stylesheet" href="../admin/public/css/actualizacion.css?v=1">
-    <link rel="stylesheet" href="../admin/public/css/responsive.css?v=1">
+    <link rel="stylesheet" href="../admin/public/css/responsive.css?v=3">
 
   </head>
 <body class="hold-transition lockscreen">
@@ -47,13 +47,10 @@
 
     <!-- lockscreen credentials (contains the form) -->
     <form  action="" class="lockscreen-credentials" name="formulario" id="formulario" method="POST">
-      <div class="input-group">
-        <input type="password" class="form-control" name="codigo_persona" id="codigo_persona" placeholder="Ingrese su cédula" required>
-
-        <div class="input-group-btn">
-          <button type="submit" class="btn btn-primary"><i class="fa fa-arrow-right text-muted"></i></button>
-        </div>
+      <div class="form-group">
+        <input type="password" class="form-control" name="codigo_persona" id="codigo_persona" inputmode="numeric" placeholder="Ingrese su cédula" required>
       </div>
+      <button type="submit" class="btn btn-primary btn-block">Registrar <i class="fa fa-arrow-right" aria-hidden="true"></i></button>
     </form>
     <!-- /.lockscreen credentials -->
 
@@ -64,6 +61,24 @@
   </div>
   <div class="text-center">
 
+  </div>
+
+  <!-- Tablet on-screen keypad (768-1199px + touch only, see responsive.css):
+       types into the same #codigo_persona input and reuses the existing
+       #formulario submit path, no new registration route. -->
+  <div class="kiosk-keypad" id="kioskKeypad">
+    <button type="button" class="kiosk-key" data-digit="1">1</button>
+    <button type="button" class="kiosk-key" data-digit="2">2</button>
+    <button type="button" class="kiosk-key" data-digit="3">3</button>
+    <button type="button" class="kiosk-key" data-digit="4">4</button>
+    <button type="button" class="kiosk-key" data-digit="5">5</button>
+    <button type="button" class="kiosk-key" data-digit="6">6</button>
+    <button type="button" class="kiosk-key" data-digit="7">7</button>
+    <button type="button" class="kiosk-key" data-digit="8">8</button>
+    <button type="button" class="kiosk-key" data-digit="9">9</button>
+    <button type="button" class="kiosk-key kiosk-key-clear" id="kioskBorrar" aria-label="Borrar">Borrar</button>
+    <button type="button" class="kiosk-key" data-digit="0">0</button>
+    <button type="button" class="kiosk-key kiosk-key-submit" id="kioskRegistrar">Registrar</button>
   </div>
   <div class="lockscreen-footer text-center">
     <a href="../admin/">Iniciar Sesión</a>
@@ -81,6 +96,23 @@
 
     <script type="text/javascript" src="scripts/asistencia.js"></script>
 
+    <script>
+      // Tablet keypad: types into #codigo_persona and reuses the existing
+      // #formulario submit event (registrar_asistencia in scripts/asistencia.js)
+      // -- same ajax call and clear/reload flow as the on-screen submit button.
+      (function () {
+        var $input = $('#codigo_persona');
+        $(document).on('click', '.kiosk-key[data-digit]', function () {
+          $input.val($input.val() + $(this).data('digit'));
+        });
+        $(document).on('click', '#kioskBorrar', function () {
+          $input.val($input.val().slice(0, -1));
+        });
+        $(document).on('click', '#kioskRegistrar', function () {
+          $('#formulario').trigger('submit');
+        });
+      })();
+    </script>
 
   </body>
 </html> 
