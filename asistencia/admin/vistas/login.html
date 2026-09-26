@@ -20,7 +20,7 @@
     <!-- FUENTES GOOGLE -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../public/css/actualizacion.css?v=1">
-    <link rel="stylesheet" href="../public/css/responsive.css?v=1">
+    <link rel="stylesheet" href="../public/css/responsive.css?v=3">
 
 
   </head>
@@ -28,28 +28,27 @@
 
     <div class="login-box">
       <div class="login-logo">
+       <img src="../public/img/escudo-256.png" alt="Escudo del Liceo Santa Rosa de Lima" class="login-crest">
        <a href="login.html"><b>"Liceo. Santa Rosa De Lima "</b></a>
       </div><!-- /.login-logo -->
       <div class="login-box-body">
         <p class="login-box-msg">Ingrese sus datos de Acceso</p>
         <form method="post" id="frmAcceso">
-          <div class="form-group has-feedback">
+          <div class="form-group">
+            <label for="logina">Usuario</label>
             <input type="text" id="logina" name="logina" class="form-control" placeholder="Usuario">
-            <span class="fa fa-user form-control-feedback"></span>
           </div>
-          <div class="form-group has-feedback">
-            <input type="password" id="clavea" name="clavea" class="form-control" placeholder="Password">
-            <span class="fa fa-key form-control-feedback"></span>
+          <div class="form-group">
+            <label for="clavea">Password</label>
+            <div class="login-password-field">
+              <input type="password" id="clavea" name="clavea" class="form-control" placeholder="Password">
+              <button type="button" class="login-toggle-pass" id="btnTogglePass" aria-label="Mostrar contraseña">
+                <i class="fa fa-eye" aria-hidden="true"></i>
+              </button>
+            </div>
           </div>
-          <div class="row">
-            <div class="col-xs-8">
-              
-            </div><!-- /.col -->
-            <div class="col-xs-4">
-              <button type="submit" class="btn btn-primary btn-block btn-flat"> Ingresar</button>
-            </div><!-- /.col -->
-          </div>
-        </form>        
+          <button type="submit" class="btn btn-primary btn-block btn-flat">Ingresar</button>
+        </form>
 
       </div><!-- /.login-box-body -->
     </div><!-- /.login-box -->
@@ -75,6 +74,21 @@
       document.getElementById('btnExtra').onclick = function() {
         window.location.href = '../../vistas/asistencia.php';
       };
+    </script>
+    <script>
+      // Show/hide password: only toggles the input's type and the button's
+      // icon/label, does not touch login.js's own submit/verification flow.
+      (function () {
+        var btn = document.getElementById('btnTogglePass');
+        var input = document.getElementById('clavea');
+        if (!btn || !input) return;
+        btn.addEventListener('click', function () {
+          var showing = input.type === 'text';
+          input.type = showing ? 'password' : 'text';
+          btn.setAttribute('aria-label', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+          btn.querySelector('i').className = showing ? 'fa fa-eye' : 'fa fa-eye-slash';
+        });
+      })();
     </script>
 
 
