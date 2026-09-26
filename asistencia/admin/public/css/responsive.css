@@ -242,3 +242,114 @@ html, body {
         font-size: 12px !important;
     }
 }
+
+/* -------------------------------------------------------------------------
+   T4 — Tables and reports (rptasistencia.php + shared DataTables CSS)
+   Filters stack full width on phones; export buttons collapse behind one
+   "Exportar" toggle; every .dataTable renders as stacked, labelled cards.
+   Desktop keeps the plain table with filters in one row.
+   ------------------------------------------------------------------------- */
+
+/* The filter fields above are Bootstrap floated columns (col-lg-3/6 etc.)
+   with no clearing sibling; without clear:both this non-floated wrapper
+   can render on top of them instead of below. */
+#datatables_buttons_wrap {
+    clear: both;
+}
+
+/* Desktop/tablet: buttons show inline as before, no toggle needed. */
+#btnExportarToggle {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    /* Filters: the "Empleado" row uses .form-inline, which lays its
+       children out on one line regardless of container width; stack it
+       like the plain .form-group rows above it. */
+    #listadoregistros .form-inline {
+        display: block;
+    }
+    #listadoregistros .form-inline label {
+        display: block;
+        margin-bottom: 6px;
+    }
+    #listadoregistros .bootstrap-select.btn-group {
+        width: 100% !important;
+    }
+    #listadoregistros .form-inline .form-group {
+        margin-top: 12px !important;
+    }
+    #listadoregistros .form-inline .btn-success,
+    #listadoregistros .form-inline .btn-primary {
+        display: block;
+        width: 100%;
+        margin: 8px 0 0 0 !important;
+    }
+
+    /* Export buttons: hide the real DataTables Buttons row by default,
+       show it only after tapping the "Exportar" toggle. Button identity,
+       order and colors (PDF stays #dd4b39 via btn-danger) are untouched;
+       this only wraps how they're revealed. */
+    #btnExportarToggle {
+        display: block;
+        width: 100%;
+        height: 48px;
+        border-radius: 10px;
+    }
+    #datatables_buttons_container {
+        display: none;
+        margin-top: 8px;
+    }
+    #datatables_buttons_container.is-open {
+        display: block;
+    }
+    #datatables_buttons_container .dt-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    #datatables_buttons_container .dt-button {
+        width: 100%;
+        height: 44px;
+    }
+
+    /* Stacked card rows for every DataTable, with a data-label per cell
+       (set by etiquetarFilasResponsive() in asistencia.js) standing in
+       for the now-hidden column header. */
+    table.dataTable thead {
+        display: none;
+    }
+    table.dataTable tfoot {
+        display: none;
+    }
+    table.dataTable,
+    table.dataTable tbody,
+    table.dataTable tr,
+    table.dataTable td {
+        display: block;
+        width: 100% !important;
+    }
+    table.dataTable tr {
+        margin-bottom: 12px;
+        border: 1px solid #e3e8f2 !important;
+        border-radius: 12px;
+        padding: 10px 14px;
+        background: #fff;
+    }
+    table.dataTable td {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+        text-align: right;
+        border: none !important;
+        padding: 6px 0 !important;
+    }
+    table.dataTable td[data-label]::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #16213a;
+        text-align: left;
+        flex-shrink: 0;
+    }
+}

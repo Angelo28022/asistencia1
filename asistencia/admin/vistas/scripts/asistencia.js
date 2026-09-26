@@ -1,6 +1,31 @@
 var tabla;
 var responsableData = {};
 
+// Responsive layer: on phones, DataTables rows render as stacked cards
+// (see responsive.css). This sets a data-label on every <td> from its
+// column's header text so each value keeps a visible label; generic so it
+// works for every DataTable on the site, not just this page's.
+function etiquetarFilasResponsive(api) {
+    var encabezados = api.columns().header().toArray().map(function (th) {
+        return $(th).text().trim();
+    });
+    api.rows().nodes().each(function (fila) {
+        $(fila).find('td').each(function (i) {
+            if (encabezados[i]) $(this).attr('data-label', encabezados[i]);
+        });
+    });
+}
+
+// Phones only: a single "Exportar" button reveals the Copy/Excel/CSV/PDF
+// buttons DataTables Buttons already renders into #datatables_buttons_container,
+// instead of showing all four inline. Desktop is untouched (the toggle
+// stays hidden there via CSS) and every button keeps its existing handler.
+$(document).on('click', '#btnExportarToggle', function () {
+    var $contenedor = $('#datatables_buttons_container');
+    var abierto = $contenedor.toggleClass('is-open').hasClass('is-open');
+    $(this).attr('aria-expanded', abierto ? 'true' : 'false');
+});
+
 //funcion que se ejecuta al inicio
 function init(){
    $("#formulario").on("submit",function(e){
@@ -228,6 +253,7 @@ function listar(){
 			}
 		},
 		"bDestroy":true,
+		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
 		"iDisplayLength":10,//paginacion
 		"order":[[0,"desc"]]//ordenar (columna, orden)
 	}).DataTable();
@@ -254,6 +280,7 @@ function listaru(){
 			}
 		},
 		"bDestroy":true,
+		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
 		"iDisplayLength":10,//paginacion
 		"order":[[0,"desc"]]//ordenar (columna, orden)
 	}).DataTable();
@@ -288,6 +315,7 @@ var  fecha_inicio = $("#fecha_inicio").val();
 			}
 		},
 		"bDestroy":true,
+		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
 		"iDisplayLength":10,//paginacion
 		"order":[[0,"desc"]]//ordenar (columna, orden)
 	}).DataTable();
@@ -319,6 +347,7 @@ function listar_asistencia_todos(){
             }
         },
         "bDestroy":true,
+		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
         "iDisplayLength":10,//paginacion
         "order":[[0,"desc"]]//ordenar (columna, orden)
     }).DataTable();
@@ -350,6 +379,7 @@ var  fecha_inicio = $("#fecha_inicio").val();
 			}
 		},
 		"bDestroy":true,
+		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
 		"iDisplayLength":10,//paginacion
 		"order":[[0,"desc"]]//ordenar (columna, orden)
 	}).DataTable();

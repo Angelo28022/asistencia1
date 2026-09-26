@@ -53,8 +53,16 @@ require 'header.php';
         </button>
     </div>
   </div>
-  <div class="col-lg-12 text-right" id="datatables_buttons_container" style="margin-bottom: 10px;">
-    <!-- DataTables buttons will be dynamically inserted here -->
+  <div class="col-lg-12 text-right" id="datatables_buttons_wrap" style="margin-bottom: 10px;">
+    <!-- Phones only: a single "Exportar" control reveals the buttons
+         below (see responsive.css/asistencia.js); desktop shows them
+         inline as before, this toggle stays hidden. -->
+    <button type="button" class="btn btn-default" id="btnExportarToggle" aria-expanded="false" aria-controls="datatables_buttons_container">
+      <i class="fa fa-download"></i> Exportar
+    </button>
+    <div id="datatables_buttons_container">
+      <!-- DataTables buttons will be dynamically inserted here -->
+    </div>
   </div>
   <table id="tbllistado_asistencia" class="table table-striped table-bordered table-condensed table-hover">
     <thead>
@@ -139,7 +147,7 @@ require 'header.php';
 require 'footer.php';
  ?>
  <script src="scripts/reporte-jornadas.js?v=1"></script>
- <script src="scripts/asistencia.js?v=4"></script>
+ <script src="scripts/asistencia.js?v=5"></script>
  <?php 
 }
 
