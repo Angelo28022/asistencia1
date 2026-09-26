@@ -12,7 +12,7 @@ if (strlen(session_id())<1)
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
    <title>SISTEMA ASISTENCIA </title>
     <!-- Tell the browser to be responsive to screen width -->
-    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
     <!-- Bootstrap 3 -->
     <link rel="stylesheet" href="../public/css/bootstrap.min.css">
     <!-- Font Awesome -->
@@ -23,16 +23,17 @@ if (strlen(session_id())<1)
          folder instead of downloading all of them to reduce the load. -->
     <link rel="stylesheet" href="../public/css/_all-skins.min.css">
     <link rel="apple-touch-icon" href="../public/img/apple-touch-icon.png">
-    <link rel="shortcut icon" href="../public/img/escudo.png">
+    <link rel="shortcut icon" href="../public/img/escudo-256.png">
 
     <!-- DATATABLES -->
-    <link rel="stylesheet" type="text/css" href="../public/datatables/jquery.dataTables.min.css">    
+    <link rel="stylesheet" type="text/css" href="../public/datatables/jquery.dataTables.min.css">
     <link href="../public/datatables/buttons.dataTables.min.css" rel="stylesheet"/>
     <link href="../public/datatables/responsive.dataTables.min.css" rel="stylesheet"/>
 
     <link rel="stylesheet" type="text/css" href="../public/css/bootstrap-select.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../public/css/actualizacion.css">
+<link rel="stylesheet" href="../public/css/actualizacion.css?v=1">
+<link rel="stylesheet" href="../public/css/responsive.css?v=5">
 
   </head>
 
@@ -111,7 +112,7 @@ if (strlen(session_id())<1)
       <!-- Sidebar user panel -->
 <div class="user-panel">
         <div class="pull-left image">
-          <img src="../public/img/escudo.png" class="img-circle" style="width: 50px; height: 50px;" alt="User Image">
+          <img src="../public/img/escudo-256.png" class="img-circle" style="width: 50px; height: 50px;" alt="User Image">
         </div>
         <div class="pull-left info">
           <p><?php echo $_SESSION['nombre']; ?></p>
@@ -203,5 +204,8 @@ if (strlen(session_id())<1)
         -->
       </ul>
     </section>
-     
+
   </aside>
+  <!-- Scrim shown behind the drawer on phones; tapping it closes the menu
+       (see footer.php for the close-on-scrim/Escape/link script). -->
+  <div class="sidebar-overlay" aria-hidden="true"></div>

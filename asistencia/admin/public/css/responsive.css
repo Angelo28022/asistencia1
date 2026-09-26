@@ -1,0 +1,798 @@
+/* =========================================================================
+   RESPONSIVE LAYER
+   Additive layer loaded AFTER actualizacion.css. Keeps every existing color
+   (sidebar, navbar, buttons, dashboard cards) untouched; only adds layout,
+   spacing and touch-target rules needed to make the site work on phones and
+   tablets. See odd/tasks/responsive-ui.md and odd/design/responsive-ui/ for
+   the approved spec this file implements, task by task.
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   T1 — Foundations
+   - No accidental horizontal scrollbars from wide children.
+   - Inputs render at >=16px on phones (prevents iOS Safari auto-zoom).
+   - Primary touch targets are >=44px tall on phones.
+   ------------------------------------------------------------------------- */
+
+html, body {
+    max-width: 100%;
+}
+
+@media (max-width: 480px) {
+    .form-control,
+    input,
+    select,
+    textarea,
+    .selectpicker + .dropdown-toggle {
+        font-size: 16px !important;
+    }
+
+    .btn,
+    button,
+    input[type="submit"],
+    input[type="button"],
+    a.sidebar-toggle {
+        min-height: 44px;
+    }
+}
+
+/* -------------------------------------------------------------------------
+   T2 — Navigation
+   Phones (<768px): drawer OVER the content with a scrim, not a push.
+   Tablets (768-1199px): icon rail with labels (collapsed by default).
+   Desktop (>=1200px): stock fixed sidebar; the hamburger collapses it to
+   the same icon rail.
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+    /* Stock AdminLTE translates .content-wrapper/.main-footer by 230px when
+       the drawer opens; keep the content in place instead. */
+    .sidebar-open .content-wrapper,
+    .sidebar-open .right-side,
+    .sidebar-open .main-footer {
+        transform: none !important;
+    }
+
+    .main-sidebar,
+    .left-side {
+        width: min(300px, 84vw) !important;
+        padding-top: 56px !important;
+        z-index: 1030 !important;
+        /* AdminLTE's stock closed-state transform is a hardcoded -230px,
+           which no longer fully hides a wider drawer; -100% always moves
+           it fully off-screen regardless of width. */
+        transform: translateX(-100%);
+    }
+    .sidebar-open .main-sidebar,
+    .sidebar-open .left-side {
+        transform: translateX(0);
+    }
+
+    /* Compact single-row top bar: hide the logo block, keep the navbar. */
+    .main-header .logo {
+        display: none !important;
+    }
+    .main-header .navbar,
+    .main-header .navbar-static-top {
+        min-height: 56px !important;
+    }
+
+    /* Scrim: dims the content while the drawer is open; tapping it closes
+       the drawer (see footer.php for the click/Escape handlers). */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 16, 38, .5);
+        z-index: 1020;
+    }
+    body.sidebar-open .sidebar-overlay {
+        display: block;
+    }
+}
+
+/* Icon rail. Tablets (768-1199px) start collapsed (footer.php adds
+   AdminLTE's .sidebar-collapse there) and desktop collapses to the same
+   rail when the hamburger is tapped. This restyles AdminLTE's 50px
+   "sidebar-mini" mode: a wider rail, the crest instead of the truncated
+   "SIS" text, labels under the icons, and submenus as flyouts to the
+   right (hover with a mouse, tap on touch). Colors are the existing ones. */
+@media (min-width: 768px) {
+    body.sidebar-mini.sidebar-collapse {
+        --rail-w: 88px;
+    }
+
+    body.sidebar-mini.sidebar-collapse .main-sidebar,
+    body.sidebar-mini.sidebar-collapse .left-side {
+        width: var(--rail-w) !important;
+        overflow: visible !important;
+    }
+    body.sidebar-mini.sidebar-collapse .content-wrapper,
+    body.sidebar-mini.sidebar-collapse .right-side,
+    body.sidebar-mini.sidebar-collapse .main-footer {
+        margin-left: var(--rail-w) !important;
+    }
+    body.sidebar-mini.sidebar-collapse .main-header .logo {
+        width: var(--rail-w) !important;
+        padding: 0 !important;
+    }
+    body.sidebar-mini.sidebar-collapse .main-header .navbar {
+        margin-left: var(--rail-w) !important;
+    }
+
+    /* Crest instead of the truncated "SIS" text. */
+    body.sidebar-mini.sidebar-collapse .main-header .logo > .logo-mini {
+        display: block !important;
+        height: 50px;
+        margin: 0 !important;
+        font-size: 0 !important;
+        background: url(../img/escudo-256.png) center / 34px 34px no-repeat;
+    }
+    body.sidebar-mini.sidebar-collapse .main-header .logo > .logo-lg {
+        display: none !important;
+    }
+
+    /* The crest already sits in the logo slot and the user block has no
+       room in the rail; the section header is redundant there too. */
+    body.sidebar-mini.sidebar-collapse .user-panel,
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li.header {
+        display: none !important;
+    }
+
+    body.sidebar-mini.sidebar-collapse .sidebar-menu {
+        padding: 10px 4px;
+    }
+    /* actualizacion.css pads every item 0 12px, which in the rail leaves
+       ~44px for the label; the rail keeps the full width instead. 88px is
+       what the longest label ("Departamento", Poppins 9.5px) needs. */
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li {
+        margin-bottom: 4px;
+        padding: 0;
+    }
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li > a {
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        min-height: 56px;
+        padding: 6px 0 !important;
+        border-radius: 10px;
+        text-align: center;
+    }
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li > a > i {
+        width: auto;
+        margin: 0;
+        font-size: 18px;
+    }
+
+    /* Labels under the icons: AdminLTE hides them, or pops them out as a
+       floating tab on hover. Keep them in flow in both cases. */
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li > a > span:not(.pull-right-container),
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li:hover > a > span:not(.pull-right-container) {
+        display: block !important;
+        position: static !important;
+        width: auto !important;
+        max-width: 100%;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        font-size: 9.5px;
+        line-height: 1.2;
+        letter-spacing: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li > a > .pull-right-container {
+        display: none !important;
+    }
+
+    /* Submenus as flyouts next to the rail: on hover (mouse) or once the
+       tree widget marks the item open (tap on touch screens). */
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li > .treeview-menu {
+        display: none !important;
+    }
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li:hover > .treeview-menu,
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li.menu-open > .treeview-menu {
+        display: block !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 100% !important;
+        width: 210px !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 6px 0 !important;
+        background: #0c3484 !important;
+        border-radius: 0 10px 10px 0;
+        box-shadow: 0 10px 25px rgba(2, 13, 35, .25);
+        z-index: 1000;
+    }
+    body.sidebar-mini.sidebar-collapse .sidebar-menu > li > .treeview-menu > li > a {
+        display: flex !important;
+        align-items: center;
+        min-height: 44px;
+        padding: 0 16px !important;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+}
+
+/* actualizacion.css turns .row into a flex container; a bare col-md-12
+   (no col-xs-12/col-sm-12 companion, as used by escritorio.php) only gets
+   width:100% from its own min-width:992px rule, so as a flex item it
+   shrinks to fit its content between 768-991px. Keep it full width at
+   every size instead of only >=992px. */
+.row > .col-lg-12,
+.row > .col-md-12,
+.row > .col-sm-12,
+.row > .col-xs-12 {
+    flex: 1 1 100%;
+    max-width: 100%;
+}
+
+/* -------------------------------------------------------------------------
+   T3 — Dashboard (escritorio.php)
+   Replaces the Bootstrap col-lg-4/col-md-4/col-sm-4/col-xs-12 float grid
+   (scoped to .dashboard-grid / .dashboard-card, added in escritorio.php)
+   with a CSS grid: one full-width column on phones, auto-fill from
+   tablets up so the row fills the available width instead of leaving a
+   fixed 3-up layout with a gutter. Gradients/colors are untouched.
+   ------------------------------------------------------------------------- */
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+/* .panel-body (Bootstrap) gives this element clearfix ::before/::after
+   pseudo-elements (content:" "; display:table); left alone, display:table
+   makes each one an actual grid item and pushes the real cards out of
+   place. Suppress them here. */
+.dashboard-grid::before,
+.dashboard-grid::after {
+    content: none;
+    display: none;
+}
+
+.dashboard-grid .dashboard-card {
+    width: auto;
+    float: none;
+    padding: 0;
+    min-width: 0;
+}
+
+@media (min-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 20px;
+    }
+}
+
+/* Keep the green-to-yellow card's white text readable on its lightest
+   (yellow) end. */
+.dashboard-grid .bg-aqua,
+.dashboard-grid .bg-aqua .inner,
+.dashboard-grid .bg-aqua .small-box-footer {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+}
+
+@media (max-width: 767px) {
+    .dashboard-grid .small-box {
+        min-height: 76px !important;
+    }
+    .dashboard-grid .small-box .inner {
+        padding: 14px 18px !important;
+    }
+    .dashboard-grid .small-box h4,
+    .dashboard-grid .small-box h5 {
+        font-size: 16px !important;
+        height: auto !important;
+        margin: 0 0 4px 0 !important;
+    }
+    .dashboard-grid .small-box p {
+        font-size: 12px !important;
+    }
+    .dashboard-grid .small-box .icon {
+        font-size: 40px;
+        top: 12px;
+        right: 14px;
+    }
+    .dashboard-grid .small-box-footer {
+        padding: 8px !important;
+        font-size: 12px !important;
+    }
+}
+
+/* -------------------------------------------------------------------------
+   T4 — Tables and reports (rptasistencia.php + shared DataTables CSS)
+   Filters stack full width on phones; export buttons collapse behind one
+   "Exportar" toggle; every .dataTable renders as stacked, labelled cards.
+   Desktop keeps the plain table with filters in one row.
+   ------------------------------------------------------------------------- */
+
+/* The filter fields above are Bootstrap floated columns (col-lg-3/6 etc.)
+   with no clearing sibling; without clear:both this non-floated wrapper
+   can render on top of them instead of below. */
+#datatables_buttons_wrap {
+    clear: both;
+}
+
+/* Desktop/tablet: buttons show inline as before, no toggle needed. */
+#btnExportarToggle {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    /* Filters: the "Empleado" row uses .form-inline, which lays its
+       children out on one line regardless of container width; stack it
+       like the plain .form-group rows above it. */
+    #listadoregistros .form-inline {
+        display: block;
+    }
+    #listadoregistros .form-inline label {
+        display: block;
+        margin-bottom: 6px;
+    }
+    #listadoregistros .bootstrap-select.btn-group {
+        width: 100% !important;
+    }
+    #listadoregistros .form-inline .form-group {
+        margin-top: 12px !important;
+    }
+    #listadoregistros .form-inline .btn-success,
+    #listadoregistros .form-inline .btn-primary {
+        display: block;
+        width: 100%;
+        margin: 8px 0 0 0 !important;
+    }
+
+    /* Export buttons: hide the real DataTables Buttons row by default,
+       show it only after tapping the "Exportar" toggle. Button identity,
+       order and colors (PDF stays #dd4b39 via btn-danger) are untouched;
+       this only wraps how they're revealed. */
+    #btnExportarToggle {
+        display: block;
+        width: 100%;
+        height: 48px;
+        border-radius: 10px;
+    }
+    #datatables_buttons_container {
+        display: none;
+        margin-top: 8px;
+    }
+    #datatables_buttons_container.is-open {
+        display: block;
+    }
+    #datatables_buttons_container .dt-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    #datatables_buttons_container .dt-button {
+        width: 100%;
+        height: 44px;
+    }
+
+    /* Stacked card rows for every DataTable, with a data-label per cell
+       (set by etiquetarFilasResponsive() in asistencia.js) standing in
+       for the now-hidden column header. */
+    table.dataTable thead {
+        display: none;
+    }
+    table.dataTable tfoot {
+        display: none;
+    }
+    table.dataTable,
+    table.dataTable tbody,
+    table.dataTable tr,
+    table.dataTable td {
+        display: block;
+        width: 100% !important;
+    }
+    table.dataTable tr {
+        margin-bottom: 12px;
+        border: 1px solid #e3e8f2 !important;
+        border-radius: 12px;
+        padding: 10px 14px;
+        background: #fff;
+    }
+    table.dataTable td {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+        text-align: right;
+        border: none !important;
+        padding: 6px 0 !important;
+    }
+    table.dataTable td[data-label]::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #16213a;
+        text-align: left;
+        flex-shrink: 0;
+    }
+}
+
+/* -------------------------------------------------------------------------
+   T5 — Kiosk (vistas/asistencia.php)
+   Fluid card instead of the fixed 500px .lockscreen-wrapper; a taller
+   numeric input and full-width submit; a tablet on-screen keypad that
+   types into the same #codigo_persona input and triggers the existing
+   #formulario submit path (see the inline script in asistencia.php).
+   Colors untouched (submit stays #2563eb / hover #1d4ed8, card
+   rgba(255,255,255,.92), input bg #f8fafc).
+   ------------------------------------------------------------------------- */
+
+.lockscreen-wrapper {
+    width: min(440px, 100% - 32px) !important;
+    box-sizing: border-box;
+}
+
+/* AdminLTE's stock .lockscreen-image badge (position:absolute, meant to
+   overlap the top-left corner of a fixed 290px card) reads as a broken
+   white overlap on top of the input now that the card is fluid and the
+   input/button are taller. Render it centered and in-flow above the form
+   instead, closer to the approved design; colors and the image itself are
+   untouched, just its position and size. */
+.lockscreen-item {
+    padding: 28px 24px 24px;
+    box-sizing: border-box;
+}
+.lockscreen-image {
+    position: static;
+    display: flex;
+    justify-content: center;
+    background: transparent;
+    padding: 0;
+    margin-bottom: 12px;
+}
+.lockscreen-image > img {
+    width: 72px !important;
+    height: 72px !important;
+}
+.lockscreen-credentials {
+    margin-left: 0;
+}
+
+.lockscreen-credentials .form-group {
+    margin-bottom: 12px;
+}
+
+.lockscreen-credentials .form-control {
+    height: 56px !important;
+    font-size: 22px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.lockscreen-credentials .btn.btn-block {
+    width: 100%;
+    height: 56px;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 10px;
+}
+
+/* Keypad is always in the DOM (kept simple, no JS show/hide) but only
+   rendered on tablet-sized, touch-capable screens; phones and desktop
+   keep using the on-screen keyboard / the physical keyboard. */
+.kiosk-keypad {
+    display: none;
+}
+
+@media (min-width: 768px) and (max-width: 1199px) and (pointer: coarse) {
+    .kiosk-keypad {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(88px, 1fr));
+        gap: 14px;
+        width: 100%;
+        max-width: 440px;
+        margin-top: 20px;
+        box-sizing: border-box;
+    }
+}
+
+.kiosk-key {
+    min-height: 88px;
+    border: 1px solid #e3e8f2;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 26px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.kiosk-key:active {
+    background: #eef2ff;
+}
+.kiosk-key-clear {
+    background: #b5b5ba;
+    border-color: #b5b5ba;
+    color: #444444;
+    font-size: 15px;
+}
+.kiosk-key-submit {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+    font-size: 15px;
+}
+.kiosk-key-submit:hover {
+    background: #1d4ed8;
+}
+
+/* -------------------------------------------------------------------------
+   T6 — Login (admin/vistas/login.html)
+   Labelled, taller inputs and a show/hide password toggle on every size;
+   from 1200px up, a two-panel layout built from the existing
+   .login-logo/.login-box-body markup (no new wrapper elements): the crest
+   and title on the left over the background image, the form on the
+   right. Every existing color stays: card rgba(255,255,255,.75), title
+   rgb(2,38,103), inputs rgba(150,214,241,.85) with text rgb(1,7,20).
+   ------------------------------------------------------------------------- */
+
+.login-box {
+    box-sizing: border-box;
+}
+
+.login-crest {
+    display: block;
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    margin: 0 auto 8px;
+}
+
+.login-box-body .form-group label {
+    display: block;
+    font-weight: 600;
+    color: rgb(2, 38, 103);
+    margin-bottom: 6px;
+}
+
+.login-box-body .form-control {
+    height: 48px !important;
+}
+
+.login-password-field {
+    position: relative;
+}
+.login-password-field .form-control {
+    padding-right: 44px;
+}
+.login-toggle-pass {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #5a6478;
+}
+
+.login-box-body .btn-block {
+    width: 100%;
+}
+
+@media (max-width: 767px) {
+    .login-box {
+        width: min(400px, calc(100% - 32px)) !important;
+        margin: 0 auto !important;
+        padding-top: 40px;
+    }
+    .login-logo {
+        margin-bottom: 16px;
+    }
+}
+
+@media (min-width: 1200px) {
+    body.login-page {
+        background: #f8fafc !important;
+    }
+    .login-box {
+        width: 100% !important;
+        max-width: none;
+        margin: 0 !important;
+        height: 100vh;
+        display: flex;
+        align-items: stretch;
+        animation: none;
+    }
+    .login-logo {
+        flex: 1 1 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin: 0;
+        background: url('../img/blu-1600.jpg') no-repeat center center;
+        background-size: cover;
+        box-sizing: border-box;
+    }
+    .login-crest {
+        width: 96px;
+        height: 96px;
+        margin: 0;
+    }
+    .login-box-body {
+        flex: 1 1 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        box-sizing: border-box;
+    }
+    .login-box-body form,
+    .login-box-body .login-box-msg {
+        width: 100%;
+        max-width: 400px;
+    }
+}
+
+/* -------------------------------------------------------------------------
+   T7 — Modals and the user form
+   Phones: every Bootstrap .modal becomes a bottom sheet (header keeps its
+   existing #2563eb/white); the user form (admin/vistas/usuario.php) is
+   already one column via its own col-xs-12 classes, this only adds a
+   sticky Guardar/Cancelar bar. Desktop/tablet untouched.
+   ------------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+    .modal-dialog {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+    .modal.fade .modal-dialog {
+        transform: translateY(100%);
+        transition: transform 0.3s ease-out;
+    }
+    .modal.in .modal-dialog {
+        transform: translateY(0);
+    }
+    .modal-content {
+        border-radius: 15px 15px 0 0;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+    }
+    .modal-header {
+        position: relative;
+        padding-top: 22px;
+        flex-shrink: 0;
+    }
+    /* Small grab-handle affordance on the (already blue) header. */
+    .modal-header::before {
+        content: "";
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 4px;
+        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.4);
+    }
+    .modal-body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+    }
+    .modal-footer {
+        flex-shrink: 0;
+    }
+
+    /* Sticky Guardar/Cancelar bar: the last .form-group of the user form
+       already holds #btnGuardar/Cancelar, anchor it to the viewport
+       bottom instead of scrolling away with the rest of the form. */
+    #formularioregistros {
+        padding-bottom: 88px;
+        box-sizing: border-box;
+    }
+    #formularioregistros form .form-group:last-child {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: 0;
+        padding: 12px 16px;
+        background: #ffffff;
+        border-top: 1px solid #e3e8f2;
+        display: flex;
+        gap: 10px;
+        z-index: 1010;
+        box-sizing: border-box;
+    }
+    #formularioregistros form .form-group:last-child .btn {
+        flex: 1;
+        margin: 0 !important;
+    }
+}
+
+/* -------------------------------------------------------------------------
+   T8 — Export button colors (follow-up from T4)
+   DataTables Buttons' own stylesheet (button.dt-button, div.dt-button,
+   a.dt-button) sets a background-image gradient with the same specificity
+   as a single Bootstrap class, so it paints over .btn-danger on the PDF
+   button. Clear that gradient everywhere so PDF renders #dd4b39 (site's
+   btn-danger) and Copy/Excel/CSV keep the site's plain default-button
+   look (#b5b5ba / #444), at every breakpoint.
+   ------------------------------------------------------------------------- */
+
+button.dt-button,
+div.dt-button,
+a.dt-button {
+    background-image: none;
+    background-color: #b5b5ba;
+    border-color: #b5b5ba;
+    color: #444444;
+}
+button.dt-button:hover:not(.disabled),
+div.dt-button:hover:not(.disabled),
+a.dt-button:hover:not(.disabled),
+button.dt-button:focus:not(.disabled),
+div.dt-button:focus:not(.disabled),
+a.dt-button:focus:not(.disabled) {
+    background-image: none;
+    background-color: #a3a3a8;
+    border-color: #a3a3a8;
+    color: #444444;
+    text-shadow: none;
+}
+
+button.dt-button.btn-danger,
+div.dt-button.btn-danger,
+a.dt-button.btn-danger {
+    background-color: #dd4b39;
+    border-color: #dd4b39;
+    color: #ffffff;
+}
+button.dt-button.btn-danger:hover:not(.disabled),
+div.dt-button.btn-danger:hover:not(.disabled),
+a.dt-button.btn-danger:hover:not(.disabled),
+button.dt-button.btn-danger:focus:not(.disabled),
+div.dt-button.btn-danger:focus:not(.disabled),
+a.dt-button.btn-danger:focus:not(.disabled) {
+    background-color: #c23321;
+    border-color: #c23321;
+    color: #ffffff;
+    text-shadow: none;
+}
+
+/* T5 follow-up — tablet kiosk: fit the title, card and keypad in one
+   1024px-tall screen so the Registrar key never ends up below the fold.
+   Only when the keypad is shown (same query as .kiosk-keypad); colors and
+   the phone/desktop layouts are untouched. */
+@media (min-width: 768px) and (max-width: 1199px) and (pointer: coarse) {
+    .lockscreen-wrapper {
+        margin-top: 32px !important;
+    }
+    .lockscreen-logo {
+        margin-bottom: 8px;
+    }
+    .lockscreen-logo a {
+        font-size: 32px !important;
+        line-height: 1.2;
+    }
+    .lockscreen-name {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+}

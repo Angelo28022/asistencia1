@@ -1,0 +1,6 @@
+.git
+.atl
+*.sql
+docker-compose.yml
+Dockerfile
+.dockerignore

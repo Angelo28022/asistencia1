@@ -1,6 +1,30 @@
 var tabla;
 var responsableData = {};
-var logoBase64 = '';
+
+// Responsive layer: on phones, DataTables rows render as stacked cards
+// (see responsive.css). This sets a data-label on every <td> from its
+// column's header text so each value keeps a visible label; generic so it
+// works for every DataTable on the site, not just this page's.
+function etiquetarFilasResponsive(api) {
+    var encabezados = api.columns().header().toArray().map(function (th) {
+        return $(th).text().trim();
+    });
+    api.rows().nodes().each(function (fila) {
+        $(fila).find('td').each(function (i) {
+            if (encabezados[i]) $(this).attr('data-label', encabezados[i]);
+        });
+    });
+}
+
+// Phones only: a single "Exportar" button reveals the Copy/Excel/CSV/PDF
+// buttons DataTables Buttons already renders into #datatables_buttons_container,
+// instead of showing all four inline. Desktop is untouched (the toggle
+// stays hidden there via CSS) and every button keeps its existing handler.
+$(document).on('click', '#btnExportarToggle', function () {
+    var $contenedor = $('#datatables_buttons_container');
+    var abierto = $contenedor.toggleClass('is-open').hasClass('is-open');
+    $(this).attr('aria-expanded', abierto ? 'true' : 'false');
+});
 
 //funcion que se ejecuta al inicio
 function init(){
@@ -8,8 +32,11 @@ function init(){
    	guardaryeditar(e);
    })
 
-   // Set current date for fecha_emision
-   document.getElementById('fecha_emision').valueAsDate = new Date();
+   // Set current date for fecha_emision. Only the report pages
+   // (rptasistencia*.php) have this field; on the list pages it doesn't
+   // exist, and failing here stopped init() before the tables loaded.
+   var fechaEmision = document.getElementById('fecha_emision');
+   if (fechaEmision) fechaEmision.valueAsDate = new Date();
 
    // Iniciar cargas asíncronas y guardar sus promesas
    var cargaPersonas = $.post("../ajax/asistencia.php?op=selectPersona", function(r){
@@ -37,6 +64,44 @@ function cargarDepartamentos(){
     });
 }
 
+// Two "Responsable del reporte" modals exist: the report pages
+// (rptasistencia*.php) ship their own (#confirmarResponsable,
+// #responsableForm), while the list pages only have the shared one from
+// footer.php (#confirmarResponsableBtn, #formResponsable). Use whichever
+// the page has, so the PDF button works on every page that shows it.
+function modalResponsable() {
+    if (document.getElementById('confirmarResponsable')) {
+        return {
+            boton: '#confirmarResponsable',
+            formulario: document.getElementById('responsableForm'),
+            leer: function () {
+                return {
+                    nombre: $('#nombre_completo').val(),
+                    cargo: $('#cargo').val(),
+                    departamento: $('#departamento option:selected').text(),
+                    fecha: $('#fecha_emision').val()
+                };
+            }
+        };
+    }
+    var fecha = document.getElementById('responsable_fecha');
+    if (fecha && !fecha.value) fecha.valueAsDate = new Date();
+    return {
+        boton: '#confirmarResponsableBtn',
+        formulario: document.getElementById('formResponsable'),
+        leer: function () {
+            var cargo = $('#responsable_cargo').val();
+            var departamento = $('#responsable_departamento').val();
+            return {
+                nombre: $('#responsable_nombre').val(),
+                cargo: cargo === 'Otro' ? $('#responsable_cargo_otro').val() : cargo,
+                departamento: departamento === 'Otro' ? $('#responsable_departamento_otro').val() : departamento,
+                fecha: $('#responsable_fecha').val()
+            };
+        }
+    };
+}
+
 function getPdfButtonDefinition() {
     return {
         extend: 'pdfHtml5',
@@ -49,24 +114,18 @@ function getPdfButtonDefinition() {
         orientation: 'portrait',
         pageSize: 'A4',
         action: function ( e, dt, node, config ) {
-            console.log('PDF action initiated. Showing responsableModal.');
             var _this = this;
             // Original action reference, captured at the point of button definition
             var originalAction = $.fn.dataTable.ext.buttons.pdfHtml5.action;
 
+            var modal = modalResponsable();
+
             $('#responsableModal').modal('show');
 
-            $('#confirmarResponsable').off('click.pdf').on('click.pdf', function() {
-                console.log('Confirmar Responsable button clicked.');
-                if (document.getElementById('responsableForm').checkValidity()) {
+            $(modal.boton).off('click.pdf').on('click.pdf', function() {
+                if (modal.formulario.checkValidity()) {
                     // Update the global responsableData here, before the AJAX call
-                    responsableData = {
-                        nombre: $('#nombre_completo').val(),
-                        cargo: $('#cargo').val(),
-                        departamento: $('#departamento option:selected').text(),
-                        fecha: $('#fecha_emision').val()
-                    };
-                    console.log('Responsable Data captured:', responsableData);
+                    responsableData = modal.leer();
 
                     $.post("../ajax/asistencia.php?op=guardar_responsable", {
                         nombre_responsable: responsableData.nombre,
@@ -87,14 +146,15 @@ function getPdfButtonDefinition() {
                             return;
                         }
 
-                        console.log('AJAX response for guardar_responsable:', response);
-                        
                         if (response && response.success) { // Check for success property
-                            console.log('Responsable saved successfully. Calling original PDF action.');
-                            $('#confirmarResponsable').blur();
+                            $(modal.boton).blur();
                             $('#responsableModal').modal('hide');
-                            originalAction.call(_this, e, dt, node, config);
-                            console.log('Original PDF action called.');
+                            // Load the report resources (crest, fonts) before handing
+                            // control to pdfmake; prepararRecursos() never rejects, so
+                            // the PDF still renders (without those extras) on failure.
+                            ReporteJornadas.prepararRecursos('../').then(function () {
+                                originalAction.call(_this, e, dt, node, config);
+                            });
                         } else {
                             console.error('Error saving responsable:', response ? response.message : 'Unknown error from server');
                             bootbox.alert('Error al guardar la información del responsable: ' + (response ? response.message : 'Error desconocido.'));
@@ -106,102 +166,107 @@ function getPdfButtonDefinition() {
                         $('#responsableModal').modal('hide');
                     });
                 } else {
-                    console.warn('Responsable form validation failed.');
-                    document.getElementById('responsableForm').reportValidity();
+                    modal.formulario.reportValidity();
                 }
             });
         },
         customize: function(doc) {
-            console.log('Entering customize function for PDF.');
-            console.log('Current logoBase64 length:', logoBase64 ? logoBase64.length : 'empty');
-            console.log('Responsable data in customize (global variable):', responsableData); // Use the global variable
             try {
-                // Header
-                doc.header = function(currentPage, pageCount, pageSize) {
-                    console.log('PDF Header generation started.');
-                    return {
-                        columns: [
-                            {
-                                text: 'Reporte de Asistencia',
-                                alignment: 'left',
-                                margin: [40, 30, 0, 0] // left, top, right, bottom
-                            },
-                            // Logo removido según solicitud del usuario
-                            { text: '' } // Empty text to prevent document structure error
-                        ],
-                        margin: [40, 0] // To have the same margin on left and right
-                    };
-                };
-                console.log('PDF Header generation finished.');
-
-                // Footer
-                doc.footer = function(currentPage, pageCount) { 
-                    console.log('PDF Footer generation started.');
-                    return { 
-                        text: currentPage.toString() + ' de ' + pageCount,
-                        alignment: 'center' 
-                    }; 
-                }; 
-                console.log('PDF Footer generation finished.');
-
-                // Margins for the content
-                doc.pageMargins = [40, 80, 40, 60]; // left, top, right, bottom
-                console.log('Page margins set.');
-
-                // Signature Block
-                // Check if responsableData is populated and has a name property
-                if (responsableData && responsableData.nombre) { 
-                    console.log('Adding signature block to PDF.');
-                    doc.content.push({ text: ' ' });
-                    doc.content.push({
-                        table: {
-                            widths: ['*'],
-                            body: [
-                                [{text: 'RESPONSABLE DEL REPORTE', style: 'tableHeader', alignment: 'center'}],
-                                [{
-                                    text: [
-                                        {text: 'Nombre: ', bold: true}, responsableData.nombre + '\n',
-                                        {text: 'Cargo: ', bold: true}, responsableData.cargo + '\n',
-                                        {text: 'Departamento: ', bold: true}, responsableData.departamento + '\n',
-                                        {text: 'Fecha de emisión: ', bold: true}, new Date(responsableData.fecha).toLocaleDateString('es-ES', {day: '2-digit', month: '2-digit', year: 'numeric'})
-                                    ],
-                                    margin: [5, 5, 5, 5]
-                                }],
-                                [{
-                                    text: '\n\n\n_________________________\nFirma del Responsable',
-                                    alignment: 'center',
-                                    margin: [0, 0, 0, 10]
-                                }]
-                            ]
-                        },
-                        layout: {
-                            hLineWidth: function (i, node) {
-                                return (i === 0 || i === node.table.body.length || i === 1 || i === 2) ? 1 : 0;
-                            },
-                            vLineWidth: function (i, node) {
-                                return 0;
-                            },
-                        }
-                    });
-                    console.log('Signature block added.');
-                } else {
-                    console.log('No valid responsableData.nombre found, skipping signature block.');
+                // DataTables Buttons builds doc.content from whatever the table
+                // currently renders; find that table node instead of assuming a
+                // fixed position, so this works across Buttons versions and pages.
+                var nodoTabla = encontrarNodoTabla(doc.content);
+                if (!nodoTabla) {
+                    throw new Error('No se encontró la tabla de asistencia en el documento PDF.');
                 }
-                doc.styles.tableHeader = {
-                    bold: true,
-                    fontSize: 11,
-                    color: 'white',
-                    fillColor: '#2d4154',
-                    alignment: 'center'
-                };
-                console.log('PDF customization finished successfully.');
+
+                var filasCrudas = nodoTabla.table.body;
+                var encabezado = filasCrudas[0].map(ReporteJornadas.textoDeCelda);
+                var cuerpo = filasCrudas.slice(1).map(function (fila) {
+                    return fila.map(ReporteJornadas.textoDeCelda);
+                });
+
+                var mapaColumnas = ReporteJornadas.mapearColumnas(encabezado);
+                var filas = ReporteJornadas.extraerFilas(mapaColumnas, cuerpo);
+                var agrupado = ReporteJornadas.agruparJornadas(filas);
+
+                var periodo = calcularPeriodo(filas);
+
+                var recursos = ReporteJornadas.obtenerRecursos();
+                var responsable = (responsableData && responsableData.nombre) ? {
+                    nombre: responsableData.nombre,
+                    cargo: responsableData.cargo,
+                    departamento: responsableData.departamento,
+                    fechaEmisionISO: responsableData.fecha
+                } : null;
+
+                var nuevoDoc = ReporteJornadas.buildDocDefinition({
+                    agrupado: agrupado,
+                    periodoInicio: periodo.inicio,
+                    periodoFin: periodo.fin,
+                    responsable: responsable,
+                    escudoDataUrl: recursos.escudoDataUrl,
+                    fechaGeneracion: new Date(),
+                    poppinsDisponible: !!recursos.poppinsDisponible
+                });
+
+                delete doc.header; // the letterhead now lives in doc.content instead
+                doc.content = nuevoDoc.content;
+                doc.footer = nuevoDoc.footer;
+                doc.pageMargins = nuevoDoc.pageMargins;
+                doc.styles = nuevoDoc.styles;
+                doc.defaultStyle = nuevoDoc.defaultStyle;
+                if (nuevoDoc.images) doc.images = nuevoDoc.images;
             } catch (error) {
                 console.error('CRITICAL ERROR during PDF customization:', error);
-                // If customization fails, it's a good idea to alert the user
                 bootbox.alert('Error crítico al personalizar el documento PDF. Por favor, revisa la consola para más detalles.');
             }
         }
     };
+}
+
+// Recursively finds the pdfmake table node ({ table: { body: [...] } })
+// inside doc.content, wherever DataTables Buttons placed it.
+function encontrarNodoTabla(contenido) {
+    if (!contenido) return null;
+    if (Array.isArray(contenido)) {
+        for (var i = 0; i < contenido.length; i++) {
+            var resultado = encontrarNodoTabla(contenido[i]);
+            if (resultado) return resultado;
+        }
+        return null;
+    }
+    if (typeof contenido === 'object') {
+        if (contenido.table && Array.isArray(contenido.table.body)) return contenido;
+        for (var clave in contenido) {
+            if (Object.prototype.hasOwnProperty.call(contenido, clave)) {
+                var anidado = encontrarNodoTabla(contenido[clave]);
+                if (anidado) return anidado;
+            }
+        }
+    }
+    return null;
+}
+
+// Period shown in the metadata row: #fecha_inicio/#fecha_fin when present
+// (rptasistencia.php, rptasistenciau.php), else the min/max date found in
+// the exported rows, else today (empty table, nothing else to show).
+function calcularPeriodo(filas) {
+    var inicio = ReporteJornadas.parseFechaISO($('#fecha_inicio').val());
+    var fin = ReporteJornadas.parseFechaISO($('#fecha_fin').val());
+
+    if (!inicio || !fin) {
+        var tiempos = filas.map(function (fila) { return fila.fecha.getTime(); });
+        if (tiempos.length) {
+            if (!inicio) inicio = new Date(Math.min.apply(null, tiempos));
+            if (!fin) fin = new Date(Math.max.apply(null, tiempos));
+        } else {
+            if (!inicio) inicio = new Date();
+            if (!fin) fin = new Date();
+        }
+    }
+
+    return { inicio: inicio, fin: fin };
 }
 
 //funcion listar
@@ -226,6 +291,7 @@ function listar(){
 			}
 		},
 		"bDestroy":true,
+		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
 		"iDisplayLength":10,//paginacion
 		"order":[[0,"desc"]]//ordenar (columna, orden)
 	}).DataTable();
@@ -252,6 +318,7 @@ function listaru(){
 			}
 		},
 		"bDestroy":true,
+		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
 		"iDisplayLength":10,//paginacion
 		"order":[[0,"desc"]]//ordenar (columna, orden)
 	}).DataTable();
@@ -286,6 +353,7 @@ var  fecha_inicio = $("#fecha_inicio").val();
 			}
 		},
 		"bDestroy":true,
+		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
 		"iDisplayLength":10,//paginacion
 		"order":[[0,"desc"]]//ordenar (columna, orden)
 	}).DataTable();
@@ -317,6 +385,7 @@ function listar_asistencia_todos(){
             }
         },
         "bDestroy":true,
+		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
         "iDisplayLength":10,//paginacion
         "order":[[0,"desc"]]//ordenar (columna, orden)
     }).DataTable();
@@ -348,6 +417,7 @@ var  fecha_inicio = $("#fecha_inicio").val();
 			}
 		},
 		"bDestroy":true,
+		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
 		"iDisplayLength":10,//paginacion
 		"order":[[0,"desc"]]//ordenar (columna, orden)
 	}).DataTable();

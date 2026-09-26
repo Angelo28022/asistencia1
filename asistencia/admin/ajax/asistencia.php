@@ -169,6 +169,13 @@ switch ($_GET["op"]) {
 	break;
 
     case 'guardar_responsable':
+        header('Content-Type: application/json');
+
+        if (empty($_SESSION['idusuario'])) {
+            echo json_encode(["success" => false, "message" => "Tu sesión expiró. Vuelve a iniciar sesión."]);
+            break;
+        }
+
         $nombre_responsable = isset($_POST["nombre_responsable"]) ? limpiarCadena($_POST["nombre_responsable"]) : "";
         $cargo_responsable = isset($_POST["cargo_responsable"]) ? limpiarCadena($_POST["cargo_responsable"]) : "";
         $departamento_responsable = isset($_POST["departamento_responsable"]) ? limpiarCadena($_POST["departamento_responsable"]) : "";
@@ -176,13 +183,15 @@ switch ($_GET["op"]) {
         $tipo_reporte = isset($_POST["tipo_reporte"]) ? limpiarCadena($_POST["tipo_reporte"]) : "";
         $idusuario_generador = $_SESSION['idusuario'];
 
-        $rspta = $asistencia->guardar_responsable($tipo_reporte, $nombre_responsable, $cargo_responsable, $departamento_responsable, $fecha_emision, $idusuario_generador);
-        if ($rspta) {
-            $response = ["success" => true, "message" => "Responsable guardado"];
-        } else {
+        try {
+            $rspta = $asistencia->guardar_responsable($tipo_reporte, $nombre_responsable, $cargo_responsable, $departamento_responsable, $fecha_emision, $idusuario_generador);
+            $response = $rspta
+                ? ["success" => true, "message" => "Responsable guardado"]
+                : ["success" => false, "message" => "No se pudo guardar el responsable"];
+        } catch (mysqli_sql_exception $e) {
+            error_log('guardar_responsable: ' . $e->getMessage());
             $response = ["success" => false, "message" => "No se pudo guardar el responsable"];
         }
-        header('Content-Type: application/json');
         echo json_encode($response);
         break;
 
