@@ -713,3 +713,24 @@ a.dt-button.btn-danger:focus:not(.disabled) {
     color: #ffffff;
     text-shadow: none;
 }
+
+/* T5 follow-up — tablet kiosk: fit the title, card and keypad in one
+   1024px-tall screen so the Registrar key never ends up below the fold.
+   Only when the keypad is shown (same query as .kiosk-keypad); colors and
+   the phone/desktop layouts are untouched. */
+@media (min-width: 768px) and (max-width: 1199px) and (pointer: coarse) {
+    .lockscreen-wrapper {
+        margin-top: 32px !important;
+    }
+    .lockscreen-logo {
+        margin-bottom: 8px;
+    }
+    .lockscreen-logo a {
+        font-size: 32px !important;
+        line-height: 1.2;
+    }
+    .lockscreen-name {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+}

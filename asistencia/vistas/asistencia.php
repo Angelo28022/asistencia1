@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="../admin/public/css/blue.css">
     <link rel="shortcut icon" href="../admin/public/img/escudo-256.png">
     <link rel="stylesheet" href="../admin/public/css/actualizacion.css?v=1">
-    <link rel="stylesheet" href="../admin/public/css/responsive.css?v=3">
+    <link rel="stylesheet" href="../admin/public/css/responsive.css?v=4">
 
   </head>
 <body class="hold-transition lockscreen">
@@ -40,7 +40,7 @@
   <div class="lockscreen-item">
     <!-- lockscreen image -->
     <div class="lockscreen-image">
-      <img src="/asistencia/admin/public/img/escudo-256.png" alt="escudo">
+      <img src="../admin/public/img/escudo-256.png" alt="Escudo del Liceo Santa Rosa de Lima">
       
     </div>
     <!-- /.lockscreen-image -->

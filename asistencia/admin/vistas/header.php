@@ -33,7 +33,7 @@ if (strlen(session_id())<1)
     <link rel="stylesheet" type="text/css" href="../public/css/bootstrap-select.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../public/css/actualizacion.css?v=1">
-<link rel="stylesheet" href="../public/css/responsive.css?v=3">
+<link rel="stylesheet" href="../public/css/responsive.css?v=4">
 
   </head>
 
