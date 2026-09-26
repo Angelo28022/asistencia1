@@ -118,17 +118,14 @@ function getPdfButtonDefinition() {
             // Original action reference, captured at the point of button definition
             var originalAction = $.fn.dataTable.ext.buttons.pdfHtml5.action;
 
+            var modal = modalResponsable();
+
             $('#responsableModal').modal('show');
 
-            $('#confirmarResponsable').off('click.pdf').on('click.pdf', function() {
-                if (document.getElementById('responsableForm').checkValidity()) {
+            $(modal.boton).off('click.pdf').on('click.pdf', function() {
+                if (modal.formulario.checkValidity()) {
                     // Update the global responsableData here, before the AJAX call
-                    responsableData = {
-                        nombre: $('#nombre_completo').val(),
-                        cargo: $('#cargo').val(),
-                        departamento: $('#departamento option:selected').text(),
-                        fecha: $('#fecha_emision').val()
-                    };
+                    responsableData = modal.leer();
 
                     $.post("../ajax/asistencia.php?op=guardar_responsable", {
                         nombre_responsable: responsableData.nombre,
@@ -150,7 +147,7 @@ function getPdfButtonDefinition() {
                         }
 
                         if (response && response.success) { // Check for success property
-                            $('#confirmarResponsable').blur();
+                            $(modal.boton).blur();
                             $('#responsableModal').modal('hide');
                             // Load the report resources (crest, fonts) before handing
                             // control to pdfmake; prepararRecursos() never rejects, so
@@ -169,7 +166,7 @@ function getPdfButtonDefinition() {
                         $('#responsableModal').modal('hide');
                     });
                 } else {
-                    document.getElementById('responsableForm').reportValidity();
+                    modal.formulario.reportValidity();
                 }
             });
         },

@@ -61,7 +61,7 @@ require 'header.php';
 require 'footer.php';
  ?>
  <script src="scripts/reporte-jornadas.js?v=1"></script>
- <script src="scripts/asistencia.js?v=6"></script>
+ <script src="scripts/asistencia.js?v=7"></script>
  <?php 
 }
 
