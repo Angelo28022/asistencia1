@@ -301,7 +301,7 @@ function encontrarTablaPrincipal(nodo) {
     }
     return null;
   }
-  if (nodo.table && nodo.table.headerRows === 1 && Array.isArray(nodo.table.widths) && nodo.table.widths.length === 4) {
+  if (nodo.table && nodo.table.headerRows === 2 && Array.isArray(nodo.table.widths) && nodo.table.widths.length === 4) {
     return nodo.table;
   }
   for (const key of Object.keys(nodo)) {
@@ -329,11 +329,11 @@ function construirDocBase(overrides) {
   );
 }
 
-test('buildDocDefinition builds a table with a single header row and 4 columns', () => {
+test('buildDocDefinition builds a table with a header row, a separator row and 4 columns', () => {
   const doc = construirDocBase();
   const tabla = encontrarTablaPrincipal(doc.content);
   assert.ok(tabla, 'expected to find the shifts table in doc.content');
-  assert.equal(tabla.headerRows, 1);
+  assert.equal(tabla.headerRows, 2);
   assert.deepEqual(tabla.widths, ['*', 100, 100, 80]);
   assert.equal(tabla.dontBreakRows, true);
 
@@ -343,14 +343,17 @@ test('buildDocDefinition builds a table with a single header row and 4 columns',
   assert.equal(textoCompleto(header[1]), 'ENTRADA');
   assert.equal(textoCompleto(header[2]), 'SALIDA');
   assert.equal(textoCompleto(header[3]), 'TIEMPO');
+
+  // Zero-height separator that absorbs pdfmake's duplicated underline.
+  assert.equal(textoCompleto(tabla.body[1]), '');
 });
 
 test('buildDocDefinition renders one group row per person plus one row per shift', () => {
   const doc = construirDocBase();
   const tabla = encontrarTablaPrincipal(doc.content);
 
-  // header (1) + Diego (1 group + 1 shift) + Guy (1 group + 1 shift) + Teodosio (1 group + 2 shifts)
-  assert.equal(tabla.body.length, 1 + 2 + 2 + 3);
+  // header + separator (2) + Diego (1 group + 1 shift) + Guy (1 group + 1 shift) + Teodosio (1 group + 2 shifts)
+  assert.equal(tabla.body.length, 2 + 2 + 2 + 3);
 
   const filasGrupo = tabla.body.filter((fila) => fila[0] && fila[0].colSpan === 4);
   assert.equal(filasGrupo.length, 3);
