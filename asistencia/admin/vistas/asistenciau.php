@@ -27,23 +27,22 @@ require 'header.php';
 <div class="panel-body table-responsive" id="listadoregistros">
   <table id="tbllistadou" class="table table-striped table-bordered table-condensed table-hover">
     <thead>
-      <th>Código</th>
+      <th>Cédula</th>
       <th>Nombres</th>
       <th>Apellidos</th>
-      <th>Área</th>
-      <th>Fecha y Hora</th>
+      <th>Cargo</th>
       <th>Asistencia</th>
-      
+      <th>Fecha/Hora</th>
     </thead>
     <tbody>
     </tbody>
     <tfoot>
-      <th>Código</th>
+      <th>Cédula</th>
       <th>Nombres</th>
       <th>Apellidos</th>
-      <th>Fecha Hora</th>
+      <th>Cargo</th>
       <th>Asistencia</th>
-      <th>Fecha</th>
+      <th>Fecha/Hora</th>
     </tfoot>   
   </table>
 </div>
@@ -59,8 +58,9 @@ require 'header.php';
 
 require 'footer.php';
  ?>
- <script src="scripts/reporte-jornadas.js?v=1"></script>
- <script src="scripts/asistencia.js?v=7"></script>
+ <script src="scripts/reporte-jornadas.js?v=3"></script>
+ <script src="scripts/reporte-excel.js?v=1"></script>
+ <script src="scripts/asistencia.js?v=8"></script>
  <?php 
 }
 

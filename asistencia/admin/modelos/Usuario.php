@@ -59,6 +59,16 @@ public function listar(){
 	return ejecutarConsulta($sql);
 }
 
+//usuarios con su departamento y tipo de acceso (reporte PDF)
+public function reporte(){
+	$sql="SELECT u.nombre, u.apellidos, u.login, u.codigo_persona, u.fechacreado,
+	d.nombre AS departamento, t.nombre AS tipo
+	FROM usuarios u
+	LEFT JOIN departamento d ON d.iddepartamento=u.iddepartamento
+	LEFT JOIN tipousuario t ON t.idtipousuario=u.idtipousuario";
+	return ejecutarConsulta($sql);
+}
+
 public function cantidad_usuario(){
 	$sql="SELECT count(*) nombre FROM usuarios";
 	return ejecutarConsulta($sql);

@@ -8,7 +8,7 @@ $tipousuario=new Tipousuario();
 $idtipousuario=isset($_POST["idtipousuario"])? limpiarCadena($_POST["idtipousuario"]):"";
 $nombre=isset($_POST["nombre"])? limpiarCadena($_POST["nombre"]):"";
 $descripcion=isset($_POST["descripcion"])? limpiarCadena($_POST["descripcion"]):"";
-$idusuario=$_SESSION["idusuario"];
+$idusuario=isset($_SESSION["idusuario"])? $_SESSION["idusuario"]:"";
 
 switch ($_GET["op"]) {
 	case 'guardaryeditar':
@@ -53,8 +53,28 @@ switch ($_GET["op"]) {
              "iTotalRecords"=>count($data),//enviamos el total de registros al datatable
              "iTotalDisplayRecords"=>count($data),//enviamos el total de registros a visualizar
              "aaData"=>$data); 
-		echo json_encode($results);   
+		echo json_encode($results);
 		break;
+
+		case 'reporte':
+			header('Content-Type: application/json');
+			if (!isset($_SESSION['idusuario'])) {
+				http_response_code(401);
+				echo json_encode(array());
+				break;
+			}
+			$rspta=$tipousuario->reporte();
+			$data=array();
+			while ($reg=$rspta->fetch_object()) {
+				$data[]=array(
+					"nombre"=>$reg->nombre,
+					"descripcion"=>$reg->descripcion,
+					"fechacreada"=>$reg->fechacreada,
+					"usuarios"=>(int)$reg->usuarios
+				);
+			}
+			echo json_encode($data);
+			break;
 
 		case 'selectTipousuario':
 			$rspta=$tipousuario->select();

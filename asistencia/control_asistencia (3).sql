@@ -58,7 +58,7 @@ INSERT INTO `asistencia` (`idasistencia`, `codigo_persona`, `fecha_hora`, `tipo`
 CREATE TABLE `departamento` (
   `iddepartamento` int(11) NOT NULL,
   `nombre` varchar(45) NOT NULL,
-  `descripcion` varchar(45) NOT NULL,
+  `descripcion` varchar(256) NOT NULL,
   `fechacreada` datetime NOT NULL,
   `idusuario` varchar(45) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;

@@ -8,3 +8,6 @@ CREATE TABLE `reporte_responsables` (
   `idusuario_generador` int(11) NOT NULL,
   PRIMARY KEY (`idreporte`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Match the departamento form (maxlength=256); varchar(45) was cutting descriptions.
+ALTER TABLE `departamento` MODIFY `descripcion` varchar(256) NOT NULL;

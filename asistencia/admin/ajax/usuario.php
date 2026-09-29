@@ -98,6 +98,29 @@ $imagen = ""; // O elimina la variable si no la usas en la BD
 
 	break;
 
+	case 'reporte':
+		header('Content-Type: application/json');
+		if (!isset($_SESSION['idusuario'])) {
+			http_response_code(401);
+			echo json_encode(array());
+			break;
+		}
+		$rspta=$usuario->reporte();
+		$data=array();
+		while ($reg=$rspta->fetch_object()) {
+			$data[]=array(
+				"nombre"=>$reg->nombre,
+				"apellidos"=>$reg->apellidos,
+				"login"=>$reg->login,
+				"codigo_persona"=>$reg->codigo_persona,
+				"departamento"=>$reg->departamento,
+				"tipo"=>$reg->tipo,
+				"fechacreado"=>$reg->fechacreado
+			);
+		}
+		echo json_encode($data);
+	break;
+
 
 	case 'verificar':
 		//validar si el usuario tiene acceso al sistema

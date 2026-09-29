@@ -42,6 +42,15 @@ public function listar(){
 	$sql="SELECT * FROM tipousuario";
 	return ejecutarConsulta($sql);
 }
+//tipos de usuario con la cantidad de usuarios activos (reporte PDF/Excel)
+public function reporte(){
+	$sql="SELECT t.idtipousuario, t.nombre, t.descripcion, t.fechacreada, COUNT(u.idusuario) AS usuarios
+	FROM tipousuario t
+	LEFT JOIN usuarios u ON u.idtipousuario=t.idtipousuario AND u.estado=1
+	GROUP BY t.idtipousuario, t.nombre, t.descripcion, t.fechacreada
+	ORDER BY t.idtipousuario";
+	return ejecutarConsulta($sql);
+}
 //listar y mostrar en selct
 public function select(){
 	$sql="SELECT * FROM tipousuario";

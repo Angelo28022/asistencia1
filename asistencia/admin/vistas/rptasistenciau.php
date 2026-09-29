@@ -49,20 +49,22 @@ require 'header.php';
   </div>
   <table id="tbllistado_asistenciau" class="table table-striped table-bordered table-condensed table-hover">
     <thead>
-      <th>Fecha</th>
+      <th>Cédula</th>
       <th>Nombres</th>
+      <th>Apellidos</th>
+      <th>Cargo</th>
       <th>Asistencia</th>
       <th>Fecha/Hora</th>
-      <th>Cédula</th>
     </thead>
     <tbody> 
     </tbody>
     <tfoot>
-      <th>Fecha</th>
+      <th>Cédula</th>
       <th>Nombres</th>
+      <th>Apellidos</th>
+      <th>Cargo</th>
       <th>Asistencia</th>
       <th>Fecha/Hora</th>
-      <th>Cédula</th>
     </tfoot>   
   </table>
 </div>
@@ -81,8 +83,9 @@ require 'header.php';
 
 require 'footer.php';
  ?>
- <script src="scripts/reporte-jornadas.js?v=1"></script>
- <script src="scripts/asistencia.js?v=7"></script>
+ <script src="scripts/reporte-jornadas.js?v=3"></script>
+ <script src="scripts/reporte-excel.js?v=1"></script>
+ <script src="scripts/asistencia.js?v=8"></script>
  <?php 
 }
 

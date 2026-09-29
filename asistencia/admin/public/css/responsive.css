@@ -757,9 +757,12 @@ a.dt-button:focus:not(.disabled) {
     text-shadow: none;
 }
 
+/* Keyed on Buttons' own .buttons-pdf / .buttons-excel classes so every
+   table gets the colors, whether or not its button sets a className. */
 button.dt-button.btn-danger,
 div.dt-button.btn-danger,
-a.dt-button.btn-danger {
+a.dt-button.btn-danger,
+.dt-button.buttons-pdf {
     background-color: #dd4b39;
     border-color: #dd4b39;
     color: #ffffff;
@@ -769,9 +772,24 @@ div.dt-button.btn-danger:hover:not(.disabled),
 a.dt-button.btn-danger:hover:not(.disabled),
 button.dt-button.btn-danger:focus:not(.disabled),
 div.dt-button.btn-danger:focus:not(.disabled),
-a.dt-button.btn-danger:focus:not(.disabled) {
+a.dt-button.btn-danger:focus:not(.disabled),
+.dt-button.buttons-pdf:hover:not(.disabled),
+.dt-button.buttons-pdf:focus:not(.disabled) {
     background-color: #c23321;
     border-color: #c23321;
+    color: #ffffff;
+    text-shadow: none;
+}
+
+.dt-button.buttons-excel {
+    background-color: #1d6f42;
+    border-color: #1d6f42;
+    color: #ffffff;
+}
+.dt-button.buttons-excel:hover:not(.disabled),
+.dt-button.buttons-excel:focus:not(.disabled) {
+    background-color: #185c37;
+    border-color: #185c37;
     color: #ffffff;
     text-shadow: none;
 }

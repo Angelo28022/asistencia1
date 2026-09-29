@@ -555,8 +555,17 @@ var ReporteJornadas = (function () {
     ];
   }
 
+  // Zero-height row right under the header. With dontBreakRows the bundled
+  // pdfmake 0.1.x draws each row's top line again at that row's bottom, so
+  // the accent underline (top line of this row) used to reappear under the
+  // first person's row. This row takes that copy instead, right under the
+  // header, where it merges with the underline.
+  function construirFilaSeparadora() {
+    return [{ canvas: [] }, { canvas: [] }, { canvas: [] }, { canvas: [] }];
+  }
+
   function construirTablaJornadas(opciones) {
-    var cuerpo = [construirFilaEncabezadoTabla()];
+    var cuerpo = [construirFilaEncabezadoTabla(), construirFilaSeparadora()];
 
     opciones.agrupado.personas.forEach(function (persona) {
       cuerpo.push(construirFilaGrupo(persona));
@@ -567,14 +576,18 @@ var ReporteJornadas = (function () {
 
     return {
       table: {
-        headerRows: 1,
+        // Header + separator, repeated on every page.
+        headerRows: 2,
+        // Keeps a person's name and C.I. on the same page.
         dontBreakRows: true,
         widths: ['*', 100, 100, 80],
         body: cuerpo
       },
       layout: {
         hLineWidth: function (i) {
-          return i === 1 ? 1 : 0.5;
+          // Underline 0.5 + its 0.5 copy = one 1pt accent line. Line 2 is
+          // 0 so its own copy never shows under the first person's row.
+          return i === 2 ? 0 : 0.5;
         },
         vLineWidth: function () {
           return 0;
@@ -586,10 +599,12 @@ var ReporteJornadas = (function () {
           return esGrupo ? COLORES.rule : COLORES.ruleLight;
         },
         paddingTop: function (i) {
+          if (i === 1) return 0;
           return i === 0 ? 8 : 6;
         },
-        paddingBottom: function () {
-          return 6;
+        paddingBottom: function (i) {
+          // Pulls the underline's copy up onto the underline (no gap).
+          return i === 1 ? -0.6 : 6;
         }
       },
       margin: [0, 18, 0, 0]
@@ -871,6 +886,14 @@ var ReporteJornadas = (function () {
     procesarTabla: procesarTabla,
 
     buildDocDefinition: buildDocDefinition,
+
+    // Shared building blocks so other reports (reporte-departamentos.js)
+    // keep the same letterhead, signature block and footer.
+    celdaTexto: celdaTexto,
+    metaColumna: metaColumna,
+    construirLetterhead: construirLetterhead,
+    construirFirma: construirFirma,
+    construirFooter: construirFooter,
 
     prepararRecursos: prepararRecursos,
     obtenerRecursos: obtenerRecursos

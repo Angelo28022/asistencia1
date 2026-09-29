@@ -45,10 +45,20 @@ function listar(){
 		"aServerSide": true,//paginacion y filrado realizados por el server
 		dom: 'Bfrtip',//definimos los elementos del control de la tabla
 		buttons: [
-                  'copyHtml5',
-                  'excelHtml5',
-                  'csvHtml5',
-                  'pdf'
+                  {
+                      extend: 'excelHtml5',
+                      text: 'Excel',
+                      action: function () {
+                          generarExcelDepartamentos();
+                      }
+                  },
+                  {
+                      extend: 'pdfHtml5',
+                      text: 'PDF',
+                      action: function () {
+                          ReporteResponsable.pedir('Departamentos y personal', generarPdfDepartamentos);
+                      }
+                  }
 		],
 		"ajax":
 		{
@@ -64,6 +74,79 @@ function listar(){
 		"order":[[0,"desc"]]//ordenar (columna, orden)
 	}).DataTable();
 }
+// PDF "Departamentos y personal": built from ajax/departamento.php?op=reporte
+// (not from the table cells, which carry the action buttons and no staff counts).
+function generarPdfDepartamentos(responsable){
+	Promise.all([
+		// never rejects: falls back to no crest / Roboto
+		ReporteJornadas.prepararRecursos('../'),
+		Promise.resolve($.getJSON('../ajax/departamento.php?op=reporte'))
+	]).then(function(resultados){
+		var recursos = resultados[0];
+		var doc = ReporteDepartamentos.buildDocDefinition({
+			departamentos: resultados[1],
+			responsable: responsable,
+			fechaGeneracion: new Date(),
+			escudoDataUrl: recursos.escudoDataUrl,
+			poppinsDisponible: recursos.poppinsDisponible
+		});
+		pdfMake.createPdf(doc).download('departamentos-' + responsable.fechaEmisionISO + '.pdf');
+	}).catch(function(error){
+		console.error('Error generando el PDF de departamentos:', error);
+		bootbox.alert("No se pudo generar el PDF de departamentos.");
+	});
+}
+
+// Excel "Departamentos y personal": same source as the PDF
+// (ajax/departamento.php?op=reporte), with real columns and a staff total.
+function generarExcelDepartamentos(){
+	var hoy = new Date();
+	Promise.resolve($.getJSON('../ajax/departamento.php?op=reporte')).then(function(departamentos){
+		return ReporteExcel.descargar({
+			archivo: 'departamentos-' + ReporteExcel.fechaISO(hoy) + '.xlsx',
+			hoja: 'Departamentos',
+			titulo: ReporteJornadas.INSTITUCION_NOMBRE,
+			subtitulo: 'Departamentos y personal · Emitido el ' + ReporteExcel.fechaDMY(hoy),
+			columnas: [
+				{ titulo: 'Departamento', ancho: 18, tipo: 'texto' },
+				{ titulo: 'Descripción', ancho: 48, tipo: 'texto' },
+				{ titulo: 'Personal', ancho: 11, tipo: 'numero' },
+				{ titulo: 'Registrado', ancho: 13, tipo: 'fecha' }
+			],
+			filas: filasExcelDepartamentos(departamentos),
+			total: { etiqueta: 'Total', columnas: [2] }
+		});
+	}).catch(function(error){
+		console.error('Error generando el Excel de departamentos:', error);
+		bootbox.alert(mensajeErrorExcel(error, "No se pudo generar el Excel de departamentos."));
+	});
+}
+
+// Rows [Departamento, Descripción, Personal, Registrado] in endpoint order.
+function filasExcelDepartamentos(departamentos){
+	return (departamentos || []).map(function(d){
+		return [
+			capitalizarExcel(d.nombre),
+			capitalizarExcel(d.descripcion),
+			parseInt(d.personal, 10) || 0,
+			d.fechacreada || ''
+		];
+	});
+}
+
+function capitalizarExcel(texto){
+	var str = texto === undefined || texto === null ? '' : String(texto).trim();
+	return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// A 401 from the report endpoint means the session expired.
+function mensajeErrorExcel(error, mensaje){
+	if (error && error.status === 401) {
+		return "Su sesión ha expirado. Inicie sesión nuevamente para generar el Excel.";
+	}
+	return mensaje;
+}
+
 //funcion para guardaryeditar
 function guardaryeditar(e){
      e.preventDefault();//no se activara la accion predeterminada 

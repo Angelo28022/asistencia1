@@ -8,7 +8,7 @@ $departamento=new Departamento();
 $iddepartamento=isset($_POST["iddepartamento"])? limpiarCadena($_POST["iddepartamento"]):"";
 $nombre=isset($_POST["nombre"])? limpiarCadena($_POST["nombre"]):"";
 $descripcion=isset($_POST["descripcion"])? limpiarCadena($_POST["descripcion"]):"";
-$idusuario=$_SESSION["idusuario"];
+$idusuario=isset($_SESSION["idusuario"])? $_SESSION["idusuario"]:"";
 
 switch ($_GET["op"]) {
 	case 'guardaryeditar':
@@ -55,6 +55,26 @@ switch ($_GET["op"]) {
              "aaData"=>$data); 
 		echo json_encode($results);   
 		break;
+
+		case 'reporte':
+			header('Content-Type: application/json');
+			if (!isset($_SESSION['idusuario'])) {
+				http_response_code(401);
+				echo json_encode(array());
+				break;
+			}
+			$rspta=$departamento->reporte();
+			$data=array();
+			while ($reg=$rspta->fetch_object()) {
+				$data[]=array(
+					"nombre"=>$reg->nombre,
+					"descripcion"=>$reg->descripcion,
+					"fechacreada"=>$reg->fechacreada,
+					"personal"=>(int)$reg->personal
+				);
+			}
+			echo json_encode($data);
+			break;
 
 		case 'selectDepartamento':
 			$rspta=$departamento->select();

@@ -1,25 +1,7 @@
 var tabla;
-var logoBase64 = null; // Variable global para el logo
 
 //funcion que se ejecuta al inicio
 function init(){
-   // --- NUEVO: Cargar logo dinámicamente ---
-   $.ajax({
-        url: '../ajax/get_logo.php',
-        type: 'GET',
-        dataType: 'json',
-        success: function(response) {
-            if (response.logo) {
-                logoBase64 = response.logo;
-            } else {
-                console.error('No se pudo cargar el logo.');
-            }
-        },
-        error: function() {
-            console.error('Error al solicitar el logo.');
-        }
-    });
-
    mostrarform(false);
    mostrarform_clave(false);
    listar();
@@ -112,71 +94,18 @@ function listar(){
 		"aServerSide": true,//paginacion y filrado realizados por el server
 		dom: 'Bfrtip',//definimos los elementos del control de la tabla
 		buttons: [
-            'copyHtml5',
-            'excelHtml5',
-            'csvHtml5',
+            {
+                extend: 'excelHtml5',
+                text: 'Excel',
+                action: function () {
+                    generarExcelUsuarios();
+                }
+            },
             {
                 extend: 'pdfHtml5',
                 text: 'PDF',
-                title: 'Reporte de Usuarios',
-                orientation: 'portrait',
-                pageSize: 'A4',
-                customize: function(doc) {
-                    // --- MEJORA: Añadir logo y márgenes ---
-                    doc.header = function(currentPage, pageCount, pageSize) {
-                        if (logoBase64) {
-                            return {
-                                image: logoBase64,
-                                width: 50,
-                                margin: [20, 10, 20, 10]
-                            };
-                        }
-                        return null; 
-                    };
-                    const responsableData = $('#responsableModal').data('responsableData');
-                    var tableIndex = 1;
-                    if (responsableData) {
-                        doc.content.unshift({
-                            text: `Reporte generado por: ${responsableData.nombre}\n` + 
-                                  `Cargo: ${responsableData.cargo}\n` + 
-                                  `Departamento: ${responsableData.departamento}\n` + 
-                                  `Fecha: ${new Date(responsableData.fecha).toLocaleDateString()}`,
-                            alignment: 'left',
-                            margin: [20, 0, 20, 10],
-                            fontSize: 10
-                        });
-                        tableIndex = 2;
-                    }
-
-                    doc.footer = function(currentPage, pageCount) { 
-                        return {
-                            text: 'Página ' + currentPage.toString() + ' de ' + pageCount,
-                            alignment: 'right',
-                            margin: [0, 10, 40, 0],
-                            fontSize: 8
-                        }; 
-                    };
-
-                    if(doc.content[tableIndex] && doc.content[tableIndex].table){
-                        doc.content[tableIndex].table.widths = Array(doc.content[tableIndex].table.body[0].length + 1).join('*').split('');
-                    }
-                    
-                    doc.defaultStyle.alignment = 'center';
-                    doc.styles.tableHeader.alignment = 'center';
-                },
-                action: function(e, dt, node, config) {
-                    // 1. Abrir el modal
-                    $('#responsableModal').modal('show');
-
-                    // 2. Manejar el clic de confirmación
-                    $('#confirmarResponsableBtn').off('click').on('click', function() {
-                        if ($('#formResponsable')[0].checkValidity()) {
-                            // 3. Guardar datos y cerrar modal, luego activar la descarga del PDF
-                            guardarYExportar(); // Ya no necesitamos pasar dt, originalPdfAction, etc.
-                        } else {
-                            $('#formResponsable')[0].reportValidity();
-                        }
-                    });
+                action: function () {
+                    ReporteResponsable.pedir('Listado de Usuarios', generarPdfUsuarios);
                 }
             }
         ],
@@ -195,45 +124,83 @@ function listar(){
 	}).DataTable();
 }
 
-// Se modificó la firma de la función ya que no necesita los parámetros de DataTables directamente
-function guardarYExportar() {
-    // Recolectar datos del modal
-    const nombre = $('#responsable_nombre').val();
-    const cargoVal = $('#responsable_cargo').val();
-    const cargo = cargoVal === 'Otro' ? $('#responsable_cargo_otro').val() : cargoVal;
-    const deptoVal = $('#responsable_departamento').val();
-    const departamento = deptoVal === 'Otro' ? $('#responsable_departamento_otro').val() : deptoVal;
-    const fecha = $('#responsable_fecha').val();
+// PDF "Usuarios del sistema": built from ajax/usuario.php?op=reporte (not from
+// the table cells, which carry the action buttons and no department/type).
+function generarPdfUsuarios(responsable){
+	Promise.all([
+		// never rejects: falls back to no crest / Roboto
+		ReporteJornadas.prepararRecursos('../'),
+		Promise.resolve($.getJSON('../ajax/usuario.php?op=reporte'))
+	]).then(function(resultados){
+		var recursos = resultados[0];
+		var doc = ReporteUsuarios.buildDocDefinition({
+			usuarios: resultados[1],
+			responsable: responsable,
+			fechaGeneracion: new Date(),
+			escudoDataUrl: recursos.escudoDataUrl,
+			poppinsDisponible: recursos.poppinsDisponible
+		});
+		pdfMake.createPdf(doc).download('usuarios-' + responsable.fechaEmisionISO + '.pdf');
+	}).catch(function(error){
+		console.error('Error generando el PDF de usuarios:', error);
+		bootbox.alert("No se pudo generar el PDF de usuarios.");
+	});
+}
 
-    const responsableData = { nombre, cargo, departamento, fecha };
+// Excel "Usuarios del sistema": same source as the PDF (ajax/usuario.php?op=reporte),
+// so the sheet gets real columns instead of the table cells (action buttons).
+function generarExcelUsuarios(){
+	var hoy = new Date();
+	Promise.resolve($.getJSON('../ajax/usuario.php?op=reporte')).then(function(usuarios){
+		return ReporteExcel.descargar({
+			archivo: 'usuarios-' + ReporteExcel.fechaISO(hoy) + '.xlsx',
+			hoja: 'Usuarios',
+			titulo: ReporteJornadas.INSTITUCION_NOMBRE,
+			subtitulo: 'Usuarios del sistema · Emitido el ' + ReporteExcel.fechaDMY(hoy),
+			columnas: [
+				{ titulo: 'C.I.', ancho: 12, tipo: 'texto' },
+				{ titulo: 'Nombres', ancho: 18, tipo: 'texto' },
+				{ titulo: 'Apellidos', ancho: 20, tipo: 'texto' },
+				{ titulo: 'Usuario', ancho: 15, tipo: 'texto' },
+				{ titulo: 'Departamento', ancho: 17, tipo: 'texto' },
+				{ titulo: 'Tipo', ancho: 15, tipo: 'texto' },
+				{ titulo: 'Registrado', ancho: 13, tipo: 'fecha' }
+			],
+			filas: filasExcelUsuarios(usuarios)
+		});
+	}).catch(function(error){
+		console.error('Error generando el Excel de usuarios:', error);
+		bootbox.alert(mensajeErrorExcel(error, "No se pudo generar el Excel de usuarios."));
+	});
+}
 
-    // Guardar en el log de la BD
-    $.post("../ajax/log_reporte.php", {
-        tipo_reporte: 'Listado de Usuarios',
-        ...responsableData
-    }, function(response) {
-        if (response.success) {
-            console.log('Log response:', response.message);
-            // Adjuntar datos al modal para que 'customize' los pueda leer
-            $('#responsableModal').data('responsableData', responsableData);
+// Rows [C.I., Nombres, Apellidos, Usuario, Departamento, Tipo, Registrado],
+// sorted by full name like the PDF.
+function filasExcelUsuarios(usuarios){
+	return (usuarios || []).map(function(u){
+		var cedula = String(u.codigo_persona || '').trim();
+		return [
+			// codigo_persona holds the cédula, except for legacy accounts
+			// such as admin (codigo_persona = "admin").
+			/^\d+$/.test(cedula) ? cedula : '',
+			ReporteJornadas.normalizarNombre(u.nombre),
+			ReporteJornadas.normalizarNombre(u.apellidos),
+			String(u.login || '').trim(),
+			u.departamento || '',
+			u.tipo || '',
+			u.fechacreado || ''
+		];
+	}).sort(function(a, b){
+		return (a[1] + ' ' + a[2]).trim().localeCompare((b[1] + ' ' + b[2]).trim(), 'es');
+	});
+}
 
-            // Ocultar modal
-            $('#responsableModal').modal('hide');
-
-            // Simular un clic en el botón PDF generado por DataTables
-            // Esto activará la descarga usando el manejador por defecto de DataTables Buttons
-            $('#tbllistado_wrapper .dt-button.buttons-pdf').click();
-
-        } else {
-            console.error('Error al guardar el registro del responsable:', response.message);
-            bootbox.alert("Error al generar el reporte: " + response.message);
-            $('#responsableModal').modal('hide'); // Ocultar el modal incluso en caso de error
-        }
-    }).fail(function(jqXHR, textStatus, errorThrown) {
-        console.error('Error en la petición AJAX:', textStatus, errorThrown);
-        bootbox.alert("Error de comunicación con el servidor al generar el reporte.");
-        $('#responsableModal').modal('hide'); // Ocultar el modal en caso de fallo de comunicación
-    });
+// A 401 from the report endpoint means the session expired.
+function mensajeErrorExcel(error, mensaje){
+	if (error && error.status === 401) {
+		return "Su sesión ha expirado. Inicie sesión nuevamente para generar el Excel.";
+	}
+	return mensaje;
 }
 
 //funcion para guardaryeditar
