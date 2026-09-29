@@ -45,10 +45,20 @@ function listar(){
 		"aServerSide": true,//paginacion y filrado realizados por el server
 		dom: 'Bfrtip',//definimos los elementos del control de la tabla
 		buttons: [
-                  'copyHtml5',
-                  'excelHtml5',
-                  'csvHtml5',
-                  'pdf'
+                  {
+                      extend: 'excelHtml5',
+                      text: 'Excel',
+                      action: function () {
+                          generarExcelTipos();
+                      }
+                  },
+                  {
+                      extend: 'pdfHtml5',
+                      text: 'PDF',
+                      action: function () {
+                          ReporteResponsable.pedir('Tipos de usuario', generarPdfTipos);
+                      }
+                  }
 		],
 		"ajax":
 		{
@@ -64,6 +74,76 @@ function listar(){
 		"order":[[0,"desc"]]//ordenar (columna, orden)
 	}).DataTable();
 }
+// PDF "Tipos de usuario": built from ajax/tipousuario.php?op=reporte
+// (not from the table cells, which carry the action buttons and no user counts).
+function generarPdfTipos(responsable){
+	Promise.all([
+		// never rejects: falls back to no crest / Roboto
+		ReporteJornadas.prepararRecursos('../'),
+		Promise.resolve($.getJSON('../ajax/tipousuario.php?op=reporte'))
+	]).then(function(resultados){
+		var recursos = resultados[0];
+		var doc = ReporteTipos.buildDocDefinition({
+			tipos: resultados[1],
+			responsable: responsable,
+			fechaGeneracion: new Date(),
+			escudoDataUrl: recursos.escudoDataUrl,
+			poppinsDisponible: recursos.poppinsDisponible
+		});
+		pdfMake.createPdf(doc).download('tipos-de-usuario-' + responsable.fechaEmisionISO + '.pdf');
+	}).catch(function(error){
+		console.error('Error generando el PDF de tipos de usuario:', error);
+		bootbox.alert("No se pudo generar el PDF de tipos de usuario.");
+	});
+}
+
+// Excel "Tipos de usuario": same data source as the PDF.
+function generarExcelTipos(){
+	var hoy = new Date();
+	Promise.resolve($.getJSON('../ajax/tipousuario.php?op=reporte')).then(function(tipos){
+		return ReporteExcel.descargar({
+			archivo: 'tipos-de-usuario-' + ReporteExcel.fechaISO(hoy) + '.xlsx',
+			hoja: 'Tipos de usuario',
+			titulo: ReporteJornadas.INSTITUCION_NOMBRE,
+			subtitulo: 'Tipos de usuario · Emitido el ' + ReporteExcel.fechaDMY(hoy),
+			columnas: [
+				{ titulo: 'Tipo', ancho: 18, tipo: 'texto' },
+				{ titulo: 'Descripción', ancho: 48, tipo: 'texto' },
+				{ titulo: 'Usuarios', ancho: 11, tipo: 'numero' },
+				{ titulo: 'Registrado', ancho: 13, tipo: 'fecha' }
+			],
+			filas: (tipos || []).map(function(t){
+				return [
+					t.nombre,
+					capitalizarTexto(t.descripcion),
+					parseInt(t.usuarios, 10) || 0,
+					fechaSQLValida(t.fechacreada)
+				];
+			}),
+			total: { etiqueta: 'Total', columnas: [2] }
+		});
+	}).catch(function(error){
+		console.error('Error generando el Excel de tipos de usuario:', error);
+		if (error && error.status === 401) {
+			bootbox.alert("Tu sesión expiró. Vuelve a iniciar sesión para generar el Excel de tipos de usuario.");
+		} else {
+			bootbox.alert("No se pudo generar el Excel de tipos de usuario.");
+		}
+	});
+}
+
+function capitalizarTexto(texto){
+	var str = texto === undefined || texto === null ? '' : String(texto).trim();
+	return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// "YYYY-MM-DD..." as-is; zero or malformed dates (legacy desactivar/activar
+// write '0'/'1') -> null, so the Excel cell stays empty.
+function fechaSQLValida(valor){
+	var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(valor || '');
+	return m && m[1] !== '0000' ? valor : null;
+}
+
 //funcion para guardaryeditar
 function guardaryeditar(e){
      e.preventDefault();//no se activara la accion predeterminada 

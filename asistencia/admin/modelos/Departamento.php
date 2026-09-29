@@ -42,6 +42,15 @@ public function listar(){
 	$sql="SELECT * FROM departamento";
 	return ejecutarConsulta($sql);
 }
+//departamentos con la cantidad de personal activo (reporte PDF)
+public function reporte(){
+	$sql="SELECT d.iddepartamento, d.nombre, d.descripcion, d.fechacreada, COUNT(u.idusuario) AS personal
+	FROM departamento d
+	LEFT JOIN usuarios u ON u.iddepartamento=d.iddepartamento AND u.estado=1
+	GROUP BY d.iddepartamento, d.nombre, d.descripcion, d.fechacreada
+	ORDER BY d.iddepartamento";
+	return ejecutarConsulta($sql);
+}
 //listar y mostrar en selct
 public function select(){
 	$sql="SELECT * FROM departamento";

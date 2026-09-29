@@ -143,7 +143,11 @@ require 'header.php';
 
 require 'footer.php';
  ?>
- <script src="scripts/usuario.js"></script>
+ <script src="scripts/reporte-jornadas.js?v=3"></script>
+ <script src="scripts/reporte-responsable.js?v=1"></script>
+ <script src="scripts/reporte-usuarios.js?v=1"></script>
+ <script src="scripts/reporte-excel.js?v=1"></script>
+ <script src="scripts/usuario.js?v=3"></script>
  <?php 
 }
 

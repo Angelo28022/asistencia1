@@ -16,9 +16,9 @@ function etiquetarFilasResponsive(api) {
     });
 }
 
-// Phones only: a single "Exportar" button reveals the Copy/Excel/CSV/PDF
-// buttons DataTables Buttons already renders into #datatables_buttons_container,
-// instead of showing all four inline. Desktop is untouched (the toggle
+// Phones only: a single "Exportar" button reveals the Excel/PDF buttons
+// DataTables Buttons already renders into #datatables_buttons_container,
+// instead of showing them inline. Desktop is untouched (the toggle
 // stays hidden there via CSS) and every button keeps its existing handler.
 $(document).on('click', '#btnExportarToggle', function () {
     var $contenedor = $('#datatables_buttons_container');
@@ -269,6 +269,108 @@ function calcularPeriodo(filas) {
     return { inicio: inicio, fin: fin };
 }
 
+// Excel export of the attendance tables: same source (the exported table
+// rows), same shift grouping and same period as the PDF, one sheet row per
+// shift. No responsable modal here.
+function getExcelButtonDefinition() {
+    return {
+        extend: 'excelHtml5', // keeps Buttons' .buttons-excel class (green)
+        text: 'Excel',
+        action: function (e, dt, node, config) {
+            generarExcelAsistencia(dt, config);
+        }
+    };
+}
+
+function generarExcelAsistencia(dt, config) {
+    Promise.resolve().then(function () {
+        // The same export data the PDF button feeds to pdfmake.
+        var datos = dt.buttons.exportData(config && config.exportOptions);
+        var def = construirDefExcelAsistencia(datos.header, datos.body, new Date());
+        if (!def) {
+            bootbox.alert('No hay registros de asistencia para exportar.');
+            return;
+        }
+        return ReporteExcel.descargar(def);
+    }).catch(function (error) {
+        console.error('Error generando el Excel de asistencia:', error);
+        bootbox.alert('No se pudo generar el Excel de asistencia.');
+    });
+}
+
+// Builds the ReporteExcel definition from the table's header and body cells.
+// Returns null when there is nothing to export.
+function construirDefExcelAsistencia(encabezado, cuerpo, hoy) {
+    var mapa = ReporteJornadas.mapearColumnas(encabezado.map(ReporteJornadas.textoDeCelda));
+    var filas = ReporteJornadas.extraerFilas(mapa, cuerpo);
+    var agrupado = ReporteJornadas.agruparJornadas(filas);
+    var filasExcel = construirFilasExcelJornadas(agrupado, filas);
+    if (!filasExcel.length) return null;
+
+    var periodo = calcularPeriodo(filas);
+    var inicioISO = ReporteExcel.fechaISO(periodo.inicio);
+    var finISO = ReporteExcel.fechaISO(periodo.fin);
+
+    return {
+        archivo: 'asistencia-' + inicioISO + (finISO === inicioISO ? '' : '_' + finISO) + '.xlsx',
+        hoja: 'Jornadas',
+        titulo: ReporteJornadas.INSTITUCION_NOMBRE,
+        subtitulo: 'Reporte de asistencia · ' + ReporteExcel.fechaDMY(periodo.inicio) +
+            ' al ' + ReporteExcel.fechaDMY(periodo.fin) +
+            ' · Emitido el ' + ReporteExcel.fechaDMY(hoy),
+        columnas: [
+            { titulo: 'C.I.', ancho: 12, tipo: 'texto' },
+            { titulo: 'Nombres', ancho: 18, tipo: 'texto' },
+            { titulo: 'Apellidos', ancho: 20, tipo: 'texto' },
+            { titulo: 'Cargo', ancho: 14, tipo: 'texto' },
+            { titulo: 'Fecha', ancho: 12, tipo: 'fecha' },
+            { titulo: 'Entrada', ancho: 10, tipo: 'hora' },
+            { titulo: 'Salida', ancho: 10, tipo: 'hora' },
+            { titulo: 'Tiempo', ancho: 10, tipo: 'duracion' },
+            { titulo: 'Estado', ancho: 12, tipo: 'texto' }
+        ],
+        filas: filasExcel,
+        total: { etiqueta: 'Total', columnas: [7] }
+    };
+}
+
+// One row per shift: C.I., Nombres, Apellidos, Cargo, Fecha, Entrada, Salida,
+// Tiempo (seconds, complete shifts only), Estado. Persons keep the PDF's
+// order (by full name) and agruparJornadas already emits each person's
+// shifts in date order. agruparJornadas only keeps the combined
+// nombreCompleto, so the separate Nombres/Apellidos come from the extracted
+// marks, looked up with the same grouping key (cédula, else full name).
+function construirFilasExcelJornadas(agrupado, filas) {
+    var nombresPorClave = {};
+    (filas || []).forEach(function (fila) {
+        var clave = fila.cedula || (fila.nombres + ' ' + fila.apellidos).replace(/\s+/g, ' ').trim();
+        if (!nombresPorClave[clave]) {
+            nombresPorClave[clave] = { nombres: fila.nombres, apellidos: fila.apellidos };
+        }
+    });
+
+    var filasExcel = [];
+    agrupado.personas.forEach(function (persona) {
+        var nombres = nombresPorClave[persona.cedula || persona.nombreCompleto] ||
+            { nombres: persona.nombreCompleto, apellidos: '' };
+        persona.jornadas.forEach(function (jornada) {
+            filasExcel.push([
+                persona.cedula,
+                nombres.nombres,
+                nombres.apellidos,
+                persona.cargo,
+                // Date only: the shift's day, without the entry time.
+                new Date(jornada.fecha.getFullYear(), jornada.fecha.getMonth(), jornada.fecha.getDate()),
+                jornada.entrada,
+                jornada.salida,
+                jornada.incompleta ? null : jornada.segundos,
+                jornada.incompleta ? jornada.motivo : 'Completa'
+            ]);
+        });
+    });
+    return filasExcel;
+}
+
 //funcion listar
 function listar(){
 	tabla=$('#tbllistado').dataTable({
@@ -276,9 +378,7 @@ function listar(){
 		"aServerSide": true,//paginacion y filrado realizados por el server
 		dom: 'Bfrtip',//definimos los elementos del control de la tabla
 		buttons: [
-                  'copyHtml5',
-                  'excelHtml5',
-                  'csvHtml5',
+                  getExcelButtonDefinition(),
                   getPdfButtonDefinition()
 		],
 		"ajax":
@@ -303,9 +403,7 @@ function listaru(){
 		"aServerSide": true,//paginacion y filrado realizados por el server
 		dom: 'Bfrtip',//definimos los elementos del control de la tabla
 		buttons: [
-                  'copyHtml5',
-                  'excelHtml5',
-                  'csvHtml5',
+                  getExcelButtonDefinition(),
                   getPdfButtonDefinition()
 		],
 		"ajax":
@@ -337,9 +435,7 @@ var  fecha_inicio = $("#fecha_inicio").val();
 		"aServerSide": true,//paginacion y filrado realizados por el server
 		dom: 'Bfrtip',//definimos los elementos del control de la tabla
 		buttons: [
-                  'copyHtml5',
-                  'excelHtml5',
-                  'csvHtml5',
+                  getExcelButtonDefinition(),
                   getPdfButtonDefinition()
 		],
 		"ajax":
@@ -369,9 +465,7 @@ function listar_asistencia_todos(){
         "aServerSide": true,//paginacion y filrado realizados por el server
         dom: 'Bfrtip',//definimos los elementos del control de la tabla
         buttons: [
-            'copyHtml5',
-            'excelHtml5',
-            'csvHtml5',
+            getExcelButtonDefinition(),
             getPdfButtonDefinition()
         ],
         "ajax":
@@ -401,9 +495,7 @@ var  fecha_inicio = $("#fecha_inicio").val();
 		"aServerSide": true,//paginacion y filrado realizados por el server
 		dom: 'Bfrtip',//definimos los elementos del control de la tabla
 		buttons: [
-                  'copyHtml5',
-                  'excelHtml5',
-                  'csvHtml5',
+                  getExcelButtonDefinition(),
                   getPdfButtonDefinition()
 		],
 		"ajax":
