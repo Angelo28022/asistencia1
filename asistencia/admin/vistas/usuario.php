@@ -28,11 +28,12 @@ require 'header.php';
 <!--box-header-->
 <!--centro-->
 <div class="panel-body table-responsive" id="listadoregistros">
-  <table id="tbllistado" class="table table-striped table-bordered table-condensed table-hover">
+  <table id="tbllistado" class="table table-striped table-bordered table-condensed table-hover tbl-usuarios">
     <thead>
       <th>Opciones</th>
       <th>Nombre</th>
       <th>Apellidos</th>
+      <th>Cédula</th>
       <th>Usuario</th>
       <th>Fecha/Registro</th>
     </thead>
@@ -42,6 +43,7 @@ require 'header.php';
       <th>Opciones</th>
       <th>Nombre</th>
       <th>Apellidos</th>
+      <th>Cédula</th>
       <th>Usuario</th>
       <th>Fecha/Registro</th>
     </tfoot>   
@@ -75,7 +77,7 @@ require 'header.php';
       <label for="">Nombre de Usuario(*):</label>
       <input class="form-control" type="text" name="login" id="login" maxlength="20" placeholder="Nombre de usuario" required>
     </div>
-     <div class="form-group col-lg-6 col-md-6 col-xs-12" id="claves">
+     <div class="form-group col-lg-6 col-md-6 col-xs-12">
       <label for="">Cédula(*):</label>
       <!--<button class="btn btn-info" type="button" onclick="generar(6);" >Generar</button> -->
       <input class="form-control" type="text" name="codigo_persona" id="codigo_persona" maxlength="64" placeholder="Cédula">
@@ -147,7 +149,7 @@ require 'footer.php';
  <script src="scripts/reporte-responsable.js?v=1"></script>
  <script src="scripts/reporte-usuarios.js?v=1"></script>
  <script src="scripts/reporte-excel.js?v=1"></script>
- <script src="scripts/usuario.js?v=3"></script>
+ <script src="scripts/usuario.js?v=11"></script>
  <?php 
 }
 
