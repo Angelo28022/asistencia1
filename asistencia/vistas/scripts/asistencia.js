@@ -17,7 +17,8 @@ $("#codigo_persona").on("input",function(){
 //funcion limpiar
 function limpiar(){
 	$("#codigo_persona").val("");
-	setTimeout('document.location.reload()',2000);
+	// Keep the Entrada/Salida/day-complete message on screen for 3 seconds
+	setTimeout('document.location.reload()',3000);
 
 }
 
