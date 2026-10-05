@@ -26,6 +26,7 @@ La primera vez tarda unos minutos (descarga PHP y MariaDB). Al terminar se abre 
 |---|---|
 | `detener.bat` / `detener.sh` | Apaga la aplicación. Los datos se conservan. |
 | `reiniciar-datos.bat` / `reiniciar-datos.sh` | Borra todo y deja la base como en `control_asistencia (3).sql`. Pide confirmación. |
+| `sembrar-datos.bat` / `sembrar-datos.sh` | Agrega 18 empleados de ejemplo y sus asistencias de las últimas 6 semanas (`seed/seed-datos.sql`). Se puede repetir sin duplicar y no toca los datos reales. Clave de los empleados de ejemplo: `123456`. |
 
 ## Problemas comunes
 
