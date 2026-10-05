@@ -24,6 +24,19 @@ public function insertar($nombre,$apellidos,$login,$iddepartamento,$idtipousuari
 
 }
 
+// login and codigo_persona are UNIQUE: check before saving so the user gets a
+// message instead of a fatal duplicate-key error. $idusuario excludes the row
+// being edited ('' when inserting).
+public function existeLogin($login,$idusuario){
+	$sql="SELECT idusuario FROM usuarios WHERE login='$login' AND idusuario<>'$idusuario'";
+	return ejecutarConsultaSimpleFila($sql) ? true : false;
+}
+
+public function existeCedula($codigo_persona,$idusuario){
+	$sql="SELECT idusuario FROM usuarios WHERE codigo_persona='$codigo_persona' AND idusuario<>'$idusuario'";
+	return ejecutarConsultaSimpleFila($sql) ? true : false;
+}
+
 public function editar($idusuario,$nombre,$apellidos,$login,$iddepartamento,$idtipousuario,$imagen,$usuariocreado,$codigo_persona){
 	$sql="UPDATE usuarios SET nombre='$nombre',apellidos='$apellidos',login='$login',iddepartamento='$iddepartamento',idtipousuario='$idtipousuario',imagen='$imagen' ,usuariocreado='$usuariocreado',codigo_persona='$codigo_persona'    
 	WHERE idusuario='$idusuario'";

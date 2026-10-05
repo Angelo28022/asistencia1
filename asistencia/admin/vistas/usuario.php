@@ -78,7 +78,7 @@ require 'header.php';
      <div class="form-group col-lg-6 col-md-6 col-xs-12" id="claves">
       <label for="">Cédula(*):</label>
       <!--<button class="btn btn-info" type="button" onclick="generar(6);" >Generar</button> -->
-      <input class="form-control" type="text" name="codigo_persona" id="codigo_persona" maxlength="64" placeholder="Cédula">
+      <input class="form-control" type="text" name="codigo_persona" id="codigo_persona" maxlength="8" placeholder="Cédula" inputmode="numeric" pattern="[0-9]{7,8}" minlength="7" title="Solo números, entre 7 y 8 dígitos" required>
     </div>
     <div class="form-group col-lg-6 col-md-6 col-xs-12" id="claves">
       <label for="">Contraseña Inicio(*):</label>
@@ -147,7 +147,7 @@ require 'footer.php';
  <script src="scripts/reporte-responsable.js?v=1"></script>
  <script src="scripts/reporte-usuarios.js?v=1"></script>
  <script src="scripts/reporte-excel.js?v=1"></script>
- <script src="scripts/usuario.js?v=3"></script>
+ <script src="scripts/usuario.js?v=10"></script>
  <?php 
 }
 

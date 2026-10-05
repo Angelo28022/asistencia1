@@ -27,6 +27,33 @@ switch ($_GET["op"]) {
 $imagen = ""; // O elimina la variable si no la usas en la BD
 // ...existing code...
 
+		// Validation errors answer 422 so the form stays open with its data
+		// Both are foreign keys: reject a missing selection instead of letting
+		// the INSERT/UPDATE fail with a fatal constraint error
+		if ((int)$iddepartamento <= 0 || (int)$idtipousuario <= 0) {
+			http_response_code(422);
+			echo "Seleccione el tipo de usuario y el departamento";
+			break;
+		}
+
+		if (!preg_match('/^[0-9]{7,8}$/', $codigo_persona)) {
+			http_response_code(422);
+			echo "La cédula debe tener solo números, entre 7 y 8 dígitos";
+			break;
+		}
+
+		if ($usuario->existeLogin($login, $idusuario)) {
+			http_response_code(422);
+			echo "El nombre de usuario \"$login\" ya existe. Ingresa otro para continuar.";
+			break;
+		}
+
+		if ($usuario->existeCedula($codigo_persona, $idusuario)) {
+			http_response_code(422);
+			echo "La cédula $codigo_persona ya está registrada. Ingresa otra para continuar.";
+			break;
+		}
+
 		//Hash SHA256 para la contraseña
 		$clavehash=hash("SHA256", $password);
 

@@ -12,6 +12,11 @@ $("#formularioc").on("submit",function(c){
    		guardaryeditar(e);
    })
 
+   // Cedula accepts digits only: drop anything else as it is typed or pasted
+   $("#codigo_persona").on("input",function(){
+   	this.value=this.value.replace(/\D/g,"");
+   });
+
    $("#imagenmuestra").hide();
 //mostramos los permisos
 $.post("../ajax/usuario.php?op=permisos&id=", function(r){
@@ -21,15 +26,24 @@ $.post("../ajax/usuario.php?op=permisos&id=", function(r){
    //cargamos los items al select departamento
    $.post("../ajax/departamento.php?op=selectDepartamento", function(r){
    	$("#iddepartamento").html(r);
+   	marcarPlaceholderVacio("#iddepartamento");
    	$('#iddepartamento').selectpicker('refresh'); 
    });
 
    //cargamos los items al select tipousuario
    $.post("../ajax/tipousuario.php?op=selectTipousuario", function(r){
    	$("#idtipousuario").html(r);
+   	marcarPlaceholderVacio("#idtipousuario");
    	$('#idtipousuario').selectpicker('refresh'); 
    });
 
+}
+
+// The shared select endpoints return "seleccione..." with value "0", which
+// satisfies `required`; an empty value makes the browser block the submit
+// instead of sending a department/type id that does not exist.
+function marcarPlaceholderVacio(select){
+	$(select).find('option[value="0"]').val("");
 }
 
 //funcion limpiar
@@ -220,10 +234,15 @@ function guardaryeditar(e){
      		bootbox.alert(datos);
      		mostrarform(false);
      		tabla.ajax.reload();
+     		$("#claves").show();
+     	},
+     	error: function(xhr){
+     		// Validation error (e.g. duplicate user): keep the form and its data
+     		// so the field can be fixed and saved again
+     		bootbox.alert(xhr.status == 422 ? xhr.responseText : "No se pudo guardar el usuario");
+     		$("#btnGuardar").prop("disabled",false);
      	}
      });
-$("#claves").show();
-     limpiar();
 }
 
 function editar_clave(c){
