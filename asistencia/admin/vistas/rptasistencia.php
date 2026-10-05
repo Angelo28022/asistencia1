@@ -25,10 +25,6 @@ require 'header.php';
   <div class="box-tools pull-right">
   </div>
 </div>
-
-    
-  </div>
-</div>
 <!--box-header-->
 <!--centro-->
 <div class="panel-body table-responsive" id="listadoregistros">
@@ -42,7 +38,7 @@ require 'header.php';
   </div>
   <div class="form-inline col-lg-6 col-md-6 col-sm-6 col-xs-12">
     <label>Empleado</label>
-    <select id="idcliente" name="idcliente" class="form-control selectpicker" data-live-search="true">
+    <select id="idcliente" name="idcliente" class="form-control selectpicker" data-live-search="true" data-container="body" data-size="8">
 </select>
     <div class="form-group" style="margin-top: 10px;">
         <button class="btn btn-success" onclick="listar_asistencia();">
