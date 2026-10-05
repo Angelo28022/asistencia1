@@ -79,14 +79,14 @@ require_once('../modelos/Usuario.php');
   <div class="small-box bg-orange">
     <div class="inner">
       <h4 style="font-size: 20px;">
-        <strong> EMPLEADOS:   </strong>
+        <strong>Usuario </strong>
       </h4>
       <p>Total <?php echo $reg->nombre; ?></p>
     </div>
     <div class="icon">
        <i class="fa fa-users" aria-hidden="true"></i>
     </div>
-    <a href="usuario.php" class="small-box-footer">Agregar <i class="fa fa-arrow-circle-right"></i></a>
+    <a href="usuario.php?nuevo=1" class="small-box-footer">Agregar <i class="fa fa-arrow-circle-right"></i></a>
   </div>
 </div>
 <?php } ?>

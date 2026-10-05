@@ -141,7 +141,7 @@ require 'footer.php';
  <script src="scripts/reporte-responsable.js?v=1"></script>
  <script src="scripts/reporte-usuarios.js?v=1"></script>
  <script src="scripts/reporte-excel.js?v=1"></script>
- <script src="scripts/usuario.js?v=11"></script>
+ <script src="scripts/usuario.js?v=12"></script>
  <?php 
 }
 
