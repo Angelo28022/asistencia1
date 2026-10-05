@@ -140,7 +140,7 @@ require 'footer.php';
  ?>
  <script src="scripts/reporte-jornadas.js?v=3"></script>
  <script src="scripts/reporte-excel.js?v=1"></script>
- <script src="scripts/asistencia.js?v=9"></script>
+ <script src="scripts/asistencia.js?v=10"></script>
  <?php 
 }
 

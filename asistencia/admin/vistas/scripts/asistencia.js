@@ -401,7 +401,7 @@ function listar(){
 		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
 		"iDisplayLength":10,//paginacion
 		"columnDefs":[{"targets":5,"type":"fecha-hora"}],
-		"order":[[5,"desc"]]//newest Fecha/Hora first
+		"order":[[5,"asc"]]//oldest first, newest Fecha/Hora at the bottom
 	}).DataTable();
     tabla.buttons().container().appendTo('#datatables_buttons_container');
 }
@@ -427,7 +427,7 @@ function listaru(){
 		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
 		"iDisplayLength":10,//paginacion
 		"columnDefs":[{"targets":5,"type":"fecha-hora"}],
-		"order":[[5,"desc"]]//newest Fecha/Hora first
+		"order":[[5,"asc"]]//oldest first, newest Fecha/Hora at the bottom
 	}).DataTable();
     tabla.buttons().container().appendTo('#datatables_buttons_container');
 }
@@ -461,7 +461,7 @@ var  fecha_inicio = $("#fecha_inicio").val();
 		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
 		"iDisplayLength":10,//paginacion
 		"columnDefs":[{"targets":5,"type":"fecha-hora"}],
-		"order":[[5,"desc"]]//newest Fecha/Hora first
+		"order":[[5,"asc"]]//oldest first, newest Fecha/Hora at the bottom
 	}).DataTable();
     tabla.buttons().container().appendTo('#datatables_buttons_container');
 }
@@ -492,7 +492,7 @@ function listar_asistencia_todos(){
 		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
         "iDisplayLength":10,//paginacion
         "columnDefs":[{"targets":5,"type":"fecha-hora"}],
-		"order":[[5,"desc"]]//newest Fecha/Hora first
+		"order":[[5,"asc"]]//oldest first, newest Fecha/Hora at the bottom
     }).DataTable();
     tabla.buttons().container().appendTo('#datatables_buttons_container');
 }
@@ -523,7 +523,7 @@ var  fecha_inicio = $("#fecha_inicio").val();
 		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
 		"iDisplayLength":10,//paginacion
 		"columnDefs":[{"targets":5,"type":"fecha-hora"}],
-		"order":[[5,"desc"]]//newest Fecha/Hora first
+		"order":[[5,"asc"]]//oldest first, newest Fecha/Hora at the bottom
 	}).DataTable();
     tabla.buttons().container().appendTo('#datatables_buttons_container');
 }
