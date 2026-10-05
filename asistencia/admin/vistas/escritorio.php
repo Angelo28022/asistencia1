@@ -77,6 +77,9 @@ require_once('../modelos/Usuario.php');
 ?>
 <div class="dashboard-card">
   <div class="small-box bg-orange">
+    <!-- Like the other cards, the card itself opens its module (the users
+         list); the footer link below still opens the new-user form. -->
+    <a href="usuario.php" style="display: block; color: inherit;">
     <div class="inner">
       <h4 style="font-size: 20px;">
         <strong>Usuario </strong>
@@ -86,6 +89,7 @@ require_once('../modelos/Usuario.php');
     <div class="icon">
        <i class="fa fa-users" aria-hidden="true"></i>
     </div>
+    </a>
     <a href="usuario.php?nuevo=1" class="small-box-footer">Agregar <i class="fa fa-arrow-circle-right"></i></a>
   </div>
 </div>
