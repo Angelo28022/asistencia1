@@ -30,6 +30,11 @@ $.post("../ajax/usuario.php?op=permisos&id=", function(r){
    	$('#idtipousuario').selectpicker('refresh'); 
    });
 
+   // Opened from the dashboard "Agregar" link: go straight to the new-user form
+   if (new URLSearchParams(window.location.search).get("nuevo") === "1") {
+   	mostrarform(true);
+   }
+
 }
 
 //funcion limpiar
@@ -60,6 +65,7 @@ function mostrarform(flag){
 		$("#listadoregistros").show();
 		$("#formularioregistros").hide();
 		$("#btnagregar").show();
+		ajustarTabla();
 	}
 }
 function mostrarform_clave(flag){
@@ -73,6 +79,17 @@ function mostrarform_clave(flag){
 		$("#listadoregistros").show();
 		$("#formulario_clave").hide();
 		$("#btnagregar").show();
+		ajustarTabla();
+	}
+}
+
+// DataTables sizes its columns while the list is hidden (e.g. when opening the
+// new-user form directly) and pins those widths inline, so reset the table to
+// full width and recompute the columns once the list is visible again
+function ajustarTabla(){
+	if (tabla) {
+		$("#tbllistado").css("width","100%");
+		tabla.columns.adjust();
 	}
 }
 //cancelar form
