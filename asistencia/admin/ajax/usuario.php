@@ -111,8 +111,9 @@ $imagen = ""; // O elimina la variable si no la usas en la BD
             '<button class="btn btn-danger btn-xs" onclick="eliminar('.$reg->idusuario.')"><i class="fa fa-trash"></i></button>',
         "1"=>$reg->nombre,
         "2"=>$reg->apellidos,
-        "3"=>$reg->login,
-        "4"=>$fechacreado 
+        "3"=>$reg->codigo_persona,
+        "4"=>$reg->login,
+        "5"=>$fechacreado 
   
     );
 }
@@ -197,8 +198,8 @@ $imagen = ""; // O elimina la variable si no la usas en la BD
         session_unset();
         //Destruìmos la sesión
         session_destroy();
-        //Redireccionamos al login
-        header("Location: ../index.php");
+        //Redireccionamos al kiosko de marcaje
+        header("Location: ../../vistas/asistencia.php");
 
 	break;
 	

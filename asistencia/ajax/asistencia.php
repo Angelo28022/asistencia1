@@ -35,9 +35,9 @@ switch ($_GET["op"]) {
      			echo $rspta ? '<h3><strong>Nombres: </strong> '. $result['nombre'].' '.$result['apellidos'].'</h3><div class="alert alert-danger"> Salida registrada '.$hora.'</div>' : 'No se pudo registrar la salida';             
         } 
         } else {
-		         echo '<div class="alert alert-danger">
-                       <i class="icon fa fa-warning"></i> No hay empleado registrado con esa código...!
-                         </div>';
+		         // 404 lets the kiosk show its inline "Cedula incorrecta" message.
+		         http_response_code(404);
+		         echo 'Cedula incorrecta';
         }
 
 	break;
