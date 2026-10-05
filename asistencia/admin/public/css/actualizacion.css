@@ -1497,4 +1497,10 @@ body.login-page{
     font-size: 16px;
 }
 
-
+/* Users table: the Opciones column only holds three small buttons, so keep it
+   narrow and on one line instead of letting DataTables give it a wide share */
+.tbl-usuarios th:first-child,
+.tbl-usuarios td:first-child{
+    width: 120px !important;
+    white-space: nowrap;
+}
