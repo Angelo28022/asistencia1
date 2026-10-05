@@ -92,9 +92,17 @@ function ajustarTabla(){
 		tabla.columns.adjust();
 	}
 }
+// The password block (#claves) is only for new users; editing changes it with
+// the key button. While hidden it must not be required, or the browser
+// blocks the submit on an empty field it cannot show.
+function campoClave(flag){
+	$("#claves").toggle(flag);
+	$("#clave").prop("required",flag);
+}
+
 //cancelar form
 function cancelarform(){
-	$("#claves").show();
+	campoClave(true);
 	limpiar();
 	mostrarform(false);
 }
@@ -239,7 +247,7 @@ function guardaryeditar(e){
      		tabla.ajax.reload();
      	}
      });
-$("#claves").show();
+campoClave(true);
      limpiar();
 }
 
@@ -272,10 +280,10 @@ function mostrar(idusuario){
             data=JSON.parse(data);
             mostrarform(true);
             if ($("#idusuario").val(data.idusuario).length==0) {
-               $("#claves").show();
+               campoClave(true);
                
            }else{
-            $("#claves").hide();
+            campoClave(false);
             }
             $("#nombre").val(data.nombre);
             $("#iddepartamento").val(data.iddepartamento);
