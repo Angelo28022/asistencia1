@@ -170,8 +170,8 @@ $imagen = ""; // O elimina la variable si no la usas en la BD
         session_unset();
         //Destruìmos la sesión
         session_destroy();
-        //Redireccionamos al login
-        header("Location: ../index.php");
+        //Redireccionamos al kiosko de marcaje
+        header("Location: ../../vistas/asistencia.php");
 
 	break;
 	
