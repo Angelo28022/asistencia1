@@ -78,7 +78,9 @@ switch ($_GET["op"]) {
 
 		case 'selectDepartamento':
 			$rspta=$departamento->select();
-			echo '<option value="0">seleccione...</option>';
+			// Empty value so `required` selects (report PDF modal, user form)
+			// block the submit until a real department is chosen
+			echo '<option value="">seleccione...</option>';
 			while ($reg=$rspta->fetch_object()) {
 				echo '<option value=' . $reg->iddepartamento.'>'.$reg->nombre.'</option>';
 			}
