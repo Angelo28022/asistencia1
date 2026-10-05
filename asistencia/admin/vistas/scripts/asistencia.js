@@ -1,3 +1,10 @@
+// Fecha/Hora cells read "dd/mm/yyyy hh:mm:ss AM"; DataTables would sort that
+// as text (by day of the month first), so order it by the real date instead.
+$.fn.dataTable.ext.type.order['fecha-hora-pre'] = function (valor) {
+    var fecha = ReporteJornadas.parseFechaHora(valor);
+    return fecha ? fecha.getTime() : 0;
+};
+
 var tabla;
 var responsableData = {};
 
@@ -393,7 +400,8 @@ function listar(){
 		"bDestroy":true,
 		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
 		"iDisplayLength":10,//paginacion
-		"order":[[0,"desc"]]//ordenar (columna, orden)
+		"columnDefs":[{"targets":5,"type":"fecha-hora"}],
+		"order":[[5,"asc"]]//oldest first, newest Fecha/Hora at the bottom
 	}).DataTable();
     tabla.buttons().container().appendTo('#datatables_buttons_container');
 }
@@ -418,7 +426,8 @@ function listaru(){
 		"bDestroy":true,
 		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
 		"iDisplayLength":10,//paginacion
-		"order":[[0,"desc"]]//ordenar (columna, orden)
+		"columnDefs":[{"targets":5,"type":"fecha-hora"}],
+		"order":[[5,"asc"]]//oldest first, newest Fecha/Hora at the bottom
 	}).DataTable();
     tabla.buttons().container().appendTo('#datatables_buttons_container');
 }
@@ -451,7 +460,8 @@ var  fecha_inicio = $("#fecha_inicio").val();
 		"bDestroy":true,
 		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
 		"iDisplayLength":10,//paginacion
-		"order":[[0,"desc"]]//ordenar (columna, orden)
+		"columnDefs":[{"targets":5,"type":"fecha-hora"}],
+		"order":[[5,"asc"]]//oldest first, newest Fecha/Hora at the bottom
 	}).DataTable();
     tabla.buttons().container().appendTo('#datatables_buttons_container');
 }
@@ -481,7 +491,8 @@ function listar_asistencia_todos(){
         "bDestroy":true,
 		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
         "iDisplayLength":10,//paginacion
-        "order":[[0,"desc"]]//ordenar (columna, orden)
+        "columnDefs":[{"targets":5,"type":"fecha-hora"}],
+		"order":[[5,"asc"]]//oldest first, newest Fecha/Hora at the bottom
     }).DataTable();
     tabla.buttons().container().appendTo('#datatables_buttons_container');
 }
@@ -511,7 +522,8 @@ var  fecha_inicio = $("#fecha_inicio").val();
 		"bDestroy":true,
 		drawCallback: function () { etiquetarFilasResponsive(this.api()); },
 		"iDisplayLength":10,//paginacion
-		"order":[[0,"desc"]]//ordenar (columna, orden)
+		"columnDefs":[{"targets":5,"type":"fecha-hora"}],
+		"order":[[5,"asc"]]//oldest first, newest Fecha/Hora at the bottom
 	}).DataTable();
     tabla.buttons().container().appendTo('#datatables_buttons_container');
 }
