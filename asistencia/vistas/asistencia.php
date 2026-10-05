@@ -48,8 +48,9 @@
     <!-- lockscreen credentials (contains the form) -->
     <form  action="" class="lockscreen-credentials" name="formulario" id="formulario" method="POST">
       <div class="form-group">
-        <input type="password" class="form-control" name="codigo_persona" id="codigo_persona" inputmode="numeric" placeholder="Ingrese su cédula" required>
+        <input type="text" class="form-control" name="codigo_persona" id="codigo_persona" inputmode="numeric" placeholder="Ingrese su cédula" required>
       </div>
+      <p id="cedulaError" class="text-danger text-center" role="alert" style="display:none;"><strong>Cedula incorrecta</strong></p>
       <button type="submit" class="btn btn-primary btn-block">Registrar <i class="fa fa-arrow-right" aria-hidden="true"></i></button>
     </form>
     <!-- /.lockscreen credentials -->
@@ -103,10 +104,10 @@
       (function () {
         var $input = $('#codigo_persona');
         $(document).on('click', '.kiosk-key[data-digit]', function () {
-          $input.val($input.val() + $(this).data('digit'));
+          $input.val($input.val() + $(this).data('digit')).trigger('input');
         });
         $(document).on('click', '#kioskBorrar', function () {
-          $input.val($input.val().slice(0, -1));
+          $input.val($input.val().slice(0, -1)).trigger('input');
         });
         $(document).on('click', '#kioskRegistrar', function () {
           $('#formulario').trigger('submit');
