@@ -75,14 +75,6 @@ require 'header.php';
     </thead>
     <tbody>
     </tbody>
-    <tfoot>
-      <th>Cédula</th>
-      <th>Nombres</th>
-      <th>Apellidos</th>
-      <th>Cargo</th>
-      <th>Asistencia</th>
-      <th>Fecha/Hora</th>
-    </tfoot>   
   </table>
 </div>
 
