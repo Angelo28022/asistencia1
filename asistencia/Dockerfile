@@ -11,6 +11,10 @@ RUN mkdir -p /var/lib/php/sessions \
     && chmod 1733 /var/lib/php/sessions \
     && echo 'session.save_path = "/var/lib/php/sessions"' > "$PHP_INI_DIR/conf.d/session-save-path.ini"
 
+# Venezuela time for every date() call that does not set its own timezone
+# (e.g. the default dates of the report filters), matching the database.
+RUN echo 'date.timezone = America/Caracas' > "$PHP_INI_DIR/conf.d/timezone.ini"
+
 COPY . /var/www/html/
 
 RUN chown -R www-data:www-data /var/www/html/admin/files

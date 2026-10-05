@@ -14,7 +14,7 @@ switch ($_GET["op"]) {
 		$result=$asistencia->verificarcodigo_persona($codigo_persona);
 
       	if($result > 0) {
-	date_default_timezone_set('America/caracas');
+	date_default_timezone_set('America/Caracas');
       		$fecha = date("Y-m-d");
 			$hora = date("H:i:s");
 
