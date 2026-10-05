@@ -8,6 +8,12 @@
 var ReporteResponsable = (function () {
   'use strict';
 
+  // Emission date is always the download day (local date, not UTC)
+  function fechaHoyISO() {
+    var hoy = new Date();
+    return hoy.getFullYear() + '-' + ('0' + (hoy.getMonth() + 1)).slice(-2) + '-' + ('0' + hoy.getDate()).slice(-2);
+  }
+
   function leer() {
     var cargo = $('#responsable_cargo').val();
     var departamento = $('#responsable_departamento').val();
@@ -15,7 +21,7 @@ var ReporteResponsable = (function () {
       nombre: $('#responsable_nombre').val(),
       cargo: cargo === 'Otro' ? $('#responsable_cargo_otro').val() : cargo,
       departamento: departamento === 'Otro' ? $('#responsable_departamento_otro').val() : departamento,
-      fecha: $('#responsable_fecha').val()
+      fecha: fechaHoyISO()
     };
   }
 
@@ -29,9 +35,6 @@ var ReporteResponsable = (function () {
   // generar(responsable): called once the log is saved, with
   // { nombre, cargo, departamento, fechaEmisionISO }.
   function pedir(tipoReporte, generar) {
-    var fecha = document.getElementById('responsable_fecha');
-    if (fecha && !fecha.value) fecha.valueAsDate = new Date();
-
     $('#responsableModal').modal('show');
 
     $('#confirmarResponsableBtn').off('click').on('click', function () {

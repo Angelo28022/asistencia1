@@ -114,10 +114,6 @@ require 'header.php';
                   <!-- Opciones de departamento se cargarán dinámicamente -->
                 </select>
               </div>
-              <div class="form-group">
-                <label for="fecha_emision">Fecha de Emisión *</label>
-                <input type="date" class="form-control" id="fecha_emision" required>
-              </div>
             </form>
           </div>
           <div class="modal-footer">
@@ -136,7 +132,7 @@ require 'footer.php';
  ?>
  <script src="scripts/reporte-jornadas.js?v=3"></script>
  <script src="scripts/reporte-excel.js?v=1"></script>
- <script src="scripts/asistencia.js?v=10"></script>
+ <script src="scripts/asistencia.js?v=11"></script>
  <?php 
 }
 

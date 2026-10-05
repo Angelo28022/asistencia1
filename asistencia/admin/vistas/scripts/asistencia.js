@@ -39,11 +39,6 @@ function init(){
    	guardaryeditar(e);
    })
 
-   // Set current date for fecha_emision. Only the report pages
-   // (rptasistencia*.php) have this field; on the list pages it doesn't
-   // exist, and failing here stopped init() before the tables loaded.
-   var fechaEmision = document.getElementById('fecha_emision');
-   if (fechaEmision) fechaEmision.valueAsDate = new Date();
 
    // Iniciar cargas asíncronas y guardar sus promesas
    var cargaPersonas = $.post("../ajax/asistencia.php?op=selectPersona", function(r){
@@ -76,6 +71,13 @@ function cargarDepartamentos(){
 // #responsableForm), while the list pages only have the shared one from
 // footer.php (#confirmarResponsableBtn, #formResponsable). Use whichever
 // the page has, so the PDF button works on every page that shows it.
+// Emission date of a report is always the day it is downloaded (local date,
+// not toISOString(), which is UTC and can already be tomorrow at night).
+function fechaHoyISO() {
+    var hoy = new Date();
+    return hoy.getFullYear() + '-' + ('0' + (hoy.getMonth() + 1)).slice(-2) + '-' + ('0' + hoy.getDate()).slice(-2);
+}
+
 function modalResponsable() {
     if (document.getElementById('confirmarResponsable')) {
         return {
@@ -86,13 +88,11 @@ function modalResponsable() {
                     nombre: $('#nombre_completo').val(),
                     cargo: $('#cargo').val(),
                     departamento: $('#departamento option:selected').text(),
-                    fecha: $('#fecha_emision').val()
+                    fecha: fechaHoyISO()
                 };
             }
         };
     }
-    var fecha = document.getElementById('responsable_fecha');
-    if (fecha && !fecha.value) fecha.valueAsDate = new Date();
     return {
         boton: '#confirmarResponsableBtn',
         formulario: document.getElementById('formResponsable'),
@@ -103,7 +103,7 @@ function modalResponsable() {
                 nombre: $('#responsable_nombre').val(),
                 cargo: cargo === 'Otro' ? $('#responsable_cargo_otro').val() : cargo,
                 departamento: departamento === 'Otro' ? $('#responsable_departamento_otro').val() : departamento,
-                fecha: $('#responsable_fecha').val()
+                fecha: fechaHoyISO()
             };
         }
     };
