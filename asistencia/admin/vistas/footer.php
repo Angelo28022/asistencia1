@@ -43,10 +43,6 @@
             </select>
              <input type="text" class="form-control" id="responsable_departamento_otro" style="display:none; margin-top:10px;" placeholder="Especifique el departamento">
           </div>
-          <div class="form-group">
-            <label for="responsable_fecha">Fecha de Emisión *</label>
-            <input type="date" class="form-control" id="responsable_fecha" required>
-          </div>
         </form>
       </div>
       <div class="modal-footer">
@@ -82,9 +78,6 @@
     <script>
       // Lógica para el modal de responsable
       $(document).ready(function() {
-        // Fecha automática
-        document.getElementById('responsable_fecha').valueAsDate = new Date();
-
         // Mostrar campo "Otro" para Cargo
         $('#responsable_cargo').on('change', function() {
           $('#responsable_cargo_otro').toggle($(this).val() === 'Otro').prop('required', $(this).val() === 'Otro');

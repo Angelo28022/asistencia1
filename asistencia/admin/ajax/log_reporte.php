@@ -13,7 +13,9 @@ if (!isset($_SESSION['idusuario'])) {
     $nombre_responsable = isset($_POST['nombre']) ? limpiarCadena($_POST['nombre']) : '';
     $cargo_responsable = isset($_POST['cargo']) ? limpiarCadena($_POST['cargo']) : '';
     $departamento_responsable = isset($_POST['departamento']) ? limpiarCadena($_POST['departamento']) : '';
-    $fecha_emision = isset($_POST['fecha']) ? limpiarCadena($_POST['fecha']) : '';
+    // The emission date is the day the report is generated, never client input
+    date_default_timezone_set('America/Caracas');
+    $fecha_emision = date('Y-m-d');
     $idusuario_generador = $_SESSION['idusuario'];
 
     if (!empty($nombre_responsable) && !empty($cargo_responsable) && !empty($departamento_responsable)) {

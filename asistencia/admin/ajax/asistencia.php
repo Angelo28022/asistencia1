@@ -179,7 +179,9 @@ switch ($_GET["op"]) {
         $nombre_responsable = isset($_POST["nombre_responsable"]) ? limpiarCadena($_POST["nombre_responsable"]) : "";
         $cargo_responsable = isset($_POST["cargo_responsable"]) ? limpiarCadena($_POST["cargo_responsable"]) : "";
         $departamento_responsable = isset($_POST["departamento_responsable"]) ? limpiarCadena($_POST["departamento_responsable"]) : "";
-        $fecha_emision = isset($_POST["fecha_emision"]) ? limpiarCadena($_POST["fecha_emision"]) : "";
+        // The emission date is the day the report is generated, never client input
+        date_default_timezone_set('America/Caracas');
+        $fecha_emision = date('Y-m-d');
         $tipo_reporte = isset($_POST["tipo_reporte"]) ? limpiarCadena($_POST["tipo_reporte"]) : "";
         $idusuario_generador = $_SESSION['idusuario'];
 

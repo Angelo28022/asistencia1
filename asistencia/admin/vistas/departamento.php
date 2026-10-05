@@ -72,7 +72,7 @@ require 'header.php';
 require 'footer.php';
  ?>
  <script src="scripts/reporte-jornadas.js?v=3"></script>
- <script src="scripts/reporte-responsable.js?v=1"></script>
+ <script src="scripts/reporte-responsable.js?v=2"></script>
  <script src="scripts/reporte-departamentos.js?v=1"></script>
  <script src="scripts/reporte-excel.js?v=1"></script>
  <script src="scripts/departamento.js?v=4"></script>
