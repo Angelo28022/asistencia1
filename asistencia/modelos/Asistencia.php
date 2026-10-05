@@ -21,6 +21,12 @@ public function seleccionarcodigo_persona($codigo_persona){
 	return ejecutarConsulta($sql);
 }
 
+// Today's marks of a person: at most one Entrada and one Salida (unq_asistencia)
+public function marcasDelDia($codigo_persona,$fecha){
+    $sql = "SELECT tipo, fecha_hora FROM asistencia WHERE codigo_persona = '$codigo_persona' AND fecha = '$fecha'";
+	return ejecutarConsulta($sql);
+}
+
 public function registrar_entrada($codigo_persona,$tipo){
 	date_default_timezone_set('America/Caracas');
 	$fecha = date("Y-m-d");

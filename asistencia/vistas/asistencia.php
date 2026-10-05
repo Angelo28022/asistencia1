@@ -95,7 +95,7 @@
      <!-- Bootbox -->
     <script src="../admin/public/js/bootbox.min.js"></script>
 
-    <script type="text/javascript" src="scripts/asistencia.js"></script>
+    <script type="text/javascript" src="scripts/asistencia.js?v=2"></script>
 
     <script>
       // Tablet keypad: types into #codigo_persona and reuses the existing
