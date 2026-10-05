@@ -39,14 +39,6 @@ require 'header.php';
     </thead>
     <tbody>
     </tbody>
-    <tfoot>
-      <th>Opciones</th>
-      <th>Nombre</th>
-      <th>Apellidos</th>
-      <th>Cédula</th>
-      <th>Usuario</th>
-      <th>Fecha/Registro</th>
-    </tfoot>   
   </table>
 </div>
 <div class="panel-body" id="formularioregistros">
